@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Avatar } from '@rneui/themed';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import loc from '../loc';
+import { BlueText, Styles } from '../BlueComponents';
+import CrossIcon from '../img/icons/CrossIcon.tsx';
 
 const styles = StyleSheet.create({
   root: {
@@ -10,26 +11,24 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#3477F6',
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
   },
   labelContainer: {
     flex: 1,
     justifyContent: 'center',
-    paddingLeft: 16,
   },
   labelText: {
+    ...Styles.fonts['P2 Bold'],
     color: 'white',
-    fontWeight: 'bold',
   },
   buttonContainer: {
-    width: 48,
+    width: 30,
+    height: 30,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  ball: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
     backgroundColor: 'rgba(255, 255, 255, 0.32)',
+    borderRadius: 15,
   },
 });
 
@@ -42,10 +41,10 @@ interface CoinsSelectedProps {
 const CoinsSelected: React.FC<CoinsSelectedProps> = ({ number, onContainerPress, onClose }) => (
   <TouchableOpacity accessibilityRole="button" style={styles.root} onPress={onContainerPress}>
     <View style={styles.labelContainer}>
-      <Text style={styles.labelText}>{loc.formatString(loc.cc.coins_selected, { number })}</Text>
+      <BlueText style={styles.labelText}>{loc.formatString(loc.cc.coins_selected, { number })}</BlueText>
     </View>
     <TouchableOpacity accessibilityRole="button" style={styles.buttonContainer} onPress={onClose}>
-      <Avatar rounded containerStyle={[styles.ball]} icon={{ name: 'close', size: 22, type: 'ionicons', color: 'white' }} />
+      <CrossIcon color="white" />
     </TouchableOpacity>
   </TouchableOpacity>
 );

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Badge, Icon, Text } from '@rneui/themed';
+import { Badge, Icon } from '@rneui/themed';
 import BigNumber from 'bignumber.js';
 import dayjs from 'dayjs';
 import {
@@ -17,14 +17,14 @@ import {
 
 import {
   CurrencyRate,
-  fiatToBTC,
+  fiatToECR,
   getCurrencySymbol,
   isRateOutdated,
   mostRecentFetchedRate,
   satoshiToBTC,
   updateExchangeRate,
 } from '../blue_modules/currency';
-import { BlueText } from '../BlueComponents';
+import { BlueText, Styles } from '../BlueComponents';
 import confirm from '../helpers/confirm';
 import loc, { formatBalancePlain, formatBalanceWithoutSuffix, removeTrailingZeros } from '../loc';
 import { BitcoinUnit } from '../models/bitcoinUnits';
@@ -60,7 +60,7 @@ type AmountInputProps = Omit<TextInputProps, 'onChangeText' | 'value'> & {
   unit: BitcoinUnit;
   /**
    * Callback that returns currently typed amount in current denomination
-   * e.g. 0.001 or 10000 or $9.34 (btc, sat, fiat)
+   * e.g. 0.001 or 10000 or $9.34 (ecr, fiat)
    */
   onChangeText: (text: string) => void;
   /**
@@ -80,12 +80,23 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
 
   const maxLength = useMemo(() => {
     switch (unit) {
-      case BitcoinUnit.BTC:
-        return 11;
+      case BitcoinUnit.ECR:
+        return 10;
       case BitcoinUnit.SATS:
         return 15;
       default:
-        return 15;
+        return 8;
+    }
+  }, [unit]);
+
+  const minAmount = useMemo(() => {
+    switch (unit) {
+      case BitcoinUnit.ECR:
+        return '0.00000001';
+      case BitcoinUnit.SATS:
+        return '1';
+      default:
+        return '0.000001';
     }
   }, [unit]);
 
@@ -94,7 +105,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
       return '';
     }
     switch (unit) {
-      case BitcoinUnit.BTC: {
+      case BitcoinUnit.ECR: {
         const sat = new BigNumber(amount).multipliedBy(100000000).toNumber();
         return formatBalanceWithoutSuffix(sat, BitcoinUnit.LOCAL_CURRENCY, false);
       }
@@ -107,10 +118,10 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
           const sats = conversionCache[amount + BitcoinUnit.LOCAL_CURRENCY];
           res = satoshiToBTC(Number(sats));
         } else {
-          res = fiatToBTC(Number(amount));
+          res = fiatToECR(Number(amount));
         }
         res = removeTrailingZeros(res);
-        return `${res} ${loc.units[BitcoinUnit.BTC]}`;
+        return `${res} ${loc.units[BitcoinUnit.ECR]}`;
       }
     }
   }, [amount, unit]);
@@ -142,15 +153,15 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
   const changeAmountUnit = useCallback(() => {
     let previousUnit = unit;
     let newUnit;
-    // cycle through units BTC -> SAT -> LOCAL_CURRENCY -> BTC
-    if (previousUnit === BitcoinUnit.BTC) {
+    // cycle through units ECR -> SAT -> LOCAL_CURRENCY -> ECR
+    if (previousUnit === BitcoinUnit.ECR) {
       newUnit = BitcoinUnit.SATS;
     } else if (previousUnit === BitcoinUnit.SATS) {
       newUnit = BitcoinUnit.LOCAL_CURRENCY;
     } else if (previousUnit === BitcoinUnit.LOCAL_CURRENCY) {
-      newUnit = BitcoinUnit.BTC;
+      newUnit = BitcoinUnit.ECR;
     } else {
-      newUnit = BitcoinUnit.BTC;
+      newUnit = BitcoinUnit.ECR;
       previousUnit = BitcoinUnit.SATS;
     }
 
@@ -161,14 +172,14 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
     const log = `${amount}(${previousUnit}) ->`;
     let sats: string = '0';
     switch (previousUnit) {
-      case BitcoinUnit.BTC:
+      case BitcoinUnit.ECR:
         sats = new BigNumber(amount).multipliedBy(100000000).toString();
         break;
       case BitcoinUnit.SATS:
         sats = amount;
         break;
       case BitcoinUnit.LOCAL_CURRENCY:
-        sats = new BigNumber(fiatToBTC(+amount)).multipliedBy(100000000).toString();
+        sats = new BigNumber(fiatToECR(+amount)).multipliedBy(100000000).toString();
         break;
     }
     if (previousUnit === BitcoinUnit.LOCAL_CURRENCY && conversionCache[amount + previousUnit]) {
@@ -179,7 +190,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
     const newInputValue = formatBalancePlain(+sats, newUnit, false);
     console.log(`${log} ${sats}(sats) -> ${newInputValue}(${newUnit})`);
 
-    if (newUnit === BitcoinUnit.LOCAL_CURRENCY && previousUnit === BitcoinUnit.SATS) {
+    if (newUnit === BitcoinUnit.LOCAL_CURRENCY && previousUnit === BitcoinUnit.ECR) {
       // we cache conversion, so when we will need reverse conversion there wont be a rounding error
       conversionCache[newInputValue + newUnit] = amount;
     }
@@ -203,7 +214,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
           text = `${parseInt(split[0], 10)}`;
         }
 
-        text = unit === BitcoinUnit.BTC ? text.replace(/[^0-9.]/g, '') : text.replace(/[^0-9]/g, '');
+        text = unit === BitcoinUnit.ECR ? text.replace(/[^0-9.]/g, '') : text.replace(/[^0-9]/g, '');
       } else {
         text = text.replace(/,/gi, '.');
         if (text.split('.').length > 2) {
@@ -250,10 +261,18 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
   );
 
   const stylesHook = StyleSheet.create({
-    center: { padding: amount === BitcoinUnit.MAX ? 0 : 15 },
-    localCurrency: { color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2 },
-    input: { color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2, fontSize: amount.length > 10 ? 20 : 36 },
-    cryptoCurrency: { color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2 },
+    center: {
+      padding: amount === BitcoinUnit.MAX ? 0 : 15,
+    },
+    localCurrency: {
+      color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2,
+    },
+    input: {
+      color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2,
+    },
+    cryptoCurrency: {
+      color: disabled ? colors.buttonDisabledTextColor : colors.alternativeTextColor2,
+    },
   });
 
   return (
@@ -263,7 +282,7 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
         <View style={styles.flex}>
           <View style={styles.container}>
             {unit === BitcoinUnit.LOCAL_CURRENCY && amount !== BitcoinUnit.MAX && (
-              <Text style={[styles.localCurrency, stylesHook.localCurrency]}>{getCurrencySymbol() + ' '}</Text>
+              <BlueText style={[styles.localCurrency, stylesHook.localCurrency]}>{getCurrencySymbol() + ' '}</BlueText>
             )}
             {amount !== BitcoinUnit.MAX ? (
               <TextInput
@@ -282,17 +301,17 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
               />
             ) : (
               <Pressable onPress={resetAmount}>
-                <Text style={[styles.input, stylesHook.input]}>{BitcoinUnit.MAX}</Text>
+                <BlueText style={[styles.input, stylesHook.input]}>{BitcoinUnit.MAX}</BlueText>
               </Pressable>
             )}
             {unit !== BitcoinUnit.LOCAL_CURRENCY && amount !== BitcoinUnit.MAX && (
-              <Text style={[styles.cryptoCurrency, stylesHook.cryptoCurrency]}>{' ' + loc.units[unit]}</Text>
+              <BlueText style={[styles.cryptoCurrency, stylesHook.cryptoCurrency]}>{' ' + loc.units[unit]}</BlueText>
             )}
           </View>
           <View style={styles.secondaryRoot}>
-            <Text style={styles.secondaryText} selectable>
+            <BlueText style={styles.secondaryText} selectable>
               {secondaryDisplayCurrency}
-            </Text>
+            </BlueText>
           </View>
         </View>
         {!disabled && amount !== BitcoinUnit.MAX && (
@@ -307,6 +326,12 @@ export const AmountInput: React.FC<AmountInputProps> = props => {
           </TouchableOpacity>
         )}
       </View>
+      {unit !== BitcoinUnit.LOCAL_CURRENCY && (
+        <BlueText style={styles.minAmount}>
+          {loc.formatString(loc.send.min_amount, { amount: minAmount })}
+          {' ' + loc.units[unit]}
+        </BlueText>
+      )}
       {outdatedRefreshRate && (
         <View style={styles.outdatedRateContainer}>
           <Badge status="warning" />
@@ -356,25 +381,20 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    alignContent: 'space-between',
     justifyContent: 'center',
-    paddingTop: 16,
-    paddingBottom: 2,
   },
   localCurrency: {
-    fontSize: 18,
+    ...Styles.fonts['P3 Bold'],
     marginHorizontal: 4,
-    fontWeight: 'bold',
     alignSelf: 'center',
     justifyContent: 'center',
   },
   input: {
-    fontWeight: 'bold',
+    ...Styles.fonts['P4 Bold'],
   },
   cryptoCurrency: {
-    fontSize: 15,
+    ...Styles.fonts['P2 Bold'],
     marginHorizontal: 4,
-    fontWeight: '600',
     alignSelf: 'center',
     justifyContent: 'center',
   },
@@ -383,14 +403,17 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   secondaryText: {
-    fontSize: 16,
+    ...Styles.fonts['P2 Bold'],
     color: '#9BA0A9',
-    fontWeight: '600',
   },
   changeAmountUnit: {
     alignSelf: 'center',
     marginRight: 16,
     paddingLeft: 16,
     paddingVertical: 16,
+  },
+  minAmount: {
+    ...Styles.fonts['P1 Regular'],
+    textAlign: 'center',
   },
 });

@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import navigationStyle, { CloseButtonPosition } from '../components/navigationStyle';
+import { Platform } from 'react-native';
+import navigationStyle from '../components/navigationStyle';
 import { useTheme } from '../components/themes';
 import loc from '../loc';
 import {
@@ -16,38 +17,30 @@ import {
   SuccessComponent,
 } from './LazyLoadSendDetailsStack';
 import { SendDetailsStackParamList } from './SendDetailsStackParamList';
-import HeaderRightButton from '../components/HeaderRightButton';
 import { BitcoinUnit } from '../models/bitcoinUnits';
 import { ScanQRCodeComponent } from './LazyLoadScanQRCodeStack';
 import SelectFeeScreen from '../screen/SelectFeeScreen';
-import { Platform } from 'react-native';
 
 const Stack = createNativeStackNavigator<SendDetailsStackParamList>();
 
 const SendDetailsStack = () => {
   const theme = useTheme();
-  const DetailsButton = useMemo(
-    () => <HeaderRightButton testID="TransactionDetailsButton" disabled={true} title={loc.send.create_details} />,
-    [],
-  );
 
   return (
     <Stack.Navigator initialRouteName="SendDetails" screenOptions={{ headerShadowVisible: false, fullScreenGestureEnabled: false }}>
       <Stack.Screen
         name="SendDetails"
         component={SendDetailsComponent}
-        options={navigationStyle({
-          title: loc.send.header,
-          statusBarStyle: 'light',
-          closeButtonPosition: CloseButtonPosition.Left,
-        })(theme)}
-        initialParams={{ isEditable: true, feeUnit: BitcoinUnit.BTC, amountUnit: BitcoinUnit.BTC }} // Correctly typed now
+        options={{
+          header: () => null,
+        }}
+        initialParams={{ isEditable: true, feeUnit: BitcoinUnit.ECR, amountUnit: BitcoinUnit.ECR }} // Correctly typed now
       />
       <Stack.Screen
         name="SelectFee"
         component={SelectFeeScreen}
         options={navigationStyle({
-          sheetAllowedDetents: Platform.OS === 'ios' ? 'fitToContents' : [0.9],
+          sheetAllowedDetents: Platform.OS === 'ios' ? 'fitToContents' : [0.7],
           presentation: 'formSheet',
           headerTitle: '',
           sheetGrabberVisible: true,
@@ -56,7 +49,9 @@ const SendDetailsStack = () => {
       <Stack.Screen
         name="Confirm"
         component={ConfirmComponent}
-        options={navigationStyle({ title: loc.send.confirm_header, headerRight: () => DetailsButton })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
       <Stack.Screen
         name="PsbtWithHardwareWallet"
@@ -66,7 +61,9 @@ const SendDetailsStack = () => {
       <Stack.Screen
         name="CreateTransaction"
         component={CreateTransactionComponent}
-        options={navigationStyle({ title: loc.send.create_details })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
       <Stack.Screen
         name="PsbtMultisig"
@@ -86,7 +83,9 @@ const SendDetailsStack = () => {
       <Stack.Screen
         name="SelectWallet"
         component={SelectWalletComponent}
-        options={navigationStyle({ title: loc.wallets.select_wallet })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
       <Stack.Screen name="CoinControl" component={CoinControlComponent} options={navigationStyle({ title: loc.cc.header })(theme)} />
       <Stack.Screen

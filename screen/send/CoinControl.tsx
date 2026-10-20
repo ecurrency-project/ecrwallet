@@ -73,7 +73,7 @@ type TOutputListProps = {
 
 const OutputList: React.FC<TOutputListProps> = ({
   item: { address, txid, value },
-  balanceUnit = BitcoinUnit.BTC,
+  balanceUnit = BitcoinUnit.ECR,
   oMemo,
   frozen,
   change,
@@ -136,7 +136,7 @@ type TOutputModalProps = {
 
 const OutputModal: React.FC<TOutputModalProps> = ({
   item: { address, txid, value, vout, confirmations = 0 },
-  balanceUnit = BitcoinUnit.BTC,
+  balanceUnit = BitcoinUnit.ECR,
   oMemo,
 }) => {
   const { colors } = useTheme();

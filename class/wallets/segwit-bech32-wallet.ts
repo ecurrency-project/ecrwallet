@@ -1,6 +1,6 @@
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import { CoinSelectTarget } from 'coinselect';
-import { ECPairFactory } from 'ecpair';
+import { ECPairFactory } from '@qbtc/ecpair';
 
 import ecc from '../../blue_modules/noble_ecc';
 import { LegacyWallet } from './legacy-wallet';

@@ -1,9 +1,10 @@
 import React from 'react';
-import { ColorValue, DimensionValue, Image, ImageSourcePropType, StyleSheet, Text, Pressable, View } from 'react-native';
+import { ColorValue, DimensionValue, Image, ImageSourcePropType, StyleSheet, Pressable, View } from 'react-native';
 import { useLocale } from '@react-navigation/native';
 
 import loc from '../loc';
 import { Theme, useTheme } from './themes';
+import { BlueText, Styles } from '../BlueComponents';
 
 interface ButtonDetails {
   image: ImageSourcePropType;
@@ -24,23 +25,11 @@ interface WalletButtonProps {
 }
 
 const buttonDetails: Record<string, ButtonDetails> = {
-  Bitcoin: {
-    image: require('../img/addWallet/bitcoin.png'),
-    title: loc.wallets.add_bitcoin,
-    explain: loc.wallets.add_bitcoin_explain,
+  ECurrency: {
+    image: require('../img/addWallet/ecurrency.png'),
+    title: 'Ecurrency',
+    explain: loc.wallets.add_ecurrency_explain,
     borderColorActive: 'newBlue',
-  },
-  Vault: {
-    image: require('../img/addWallet/vault.png'),
-    title: loc.multisig.multisig_vault,
-    explain: loc.multisig.multisig_vault_explain,
-    borderColorActive: 'foregroundColor',
-  },
-  Lightning: {
-    image: require('../img/addWallet/lightning.png'),
-    title: loc.wallets.add_lightning,
-    explain: loc.wallets.add_lightning_explain,
-    borderColorActive: 'lnborderColor',
   },
 };
 
@@ -58,15 +47,14 @@ const WalletButton: React.FC<WalletButtonProps> = ({ buttonType, testID, onPress
       height: size.height,
     },
     textTitle: {
-      color: colors[details.borderColorActive] as ColorValue,
+      color: '#d53030',
       fontWeight: 'bold',
       fontSize: 18,
       writingDirection: direction,
     },
     textExplain: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.alternativeTextColor,
-      fontSize: 13,
-      fontWeight: '500',
       writingDirection: direction,
     },
   });
@@ -82,8 +70,8 @@ const WalletButton: React.FC<WalletButtonProps> = ({ buttonType, testID, onPress
         <View style={styles.content}>
           <Image style={styles.image} source={details.image} />
           <View style={styles.textContainer}>
-            <Text style={stylesHook.textTitle}>{details.title}</Text>
-            <Text style={stylesHook.textExplain}>{details.explain}</Text>
+            <BlueText style={stylesHook.textTitle}>{details.title}</BlueText>
+            <BlueText style={stylesHook.textExplain}>{details.explain}</BlueText>
           </View>
         </View>
       </View>
@@ -94,11 +82,9 @@ const WalletButton: React.FC<WalletButtonProps> = ({ buttonType, testID, onPress
 const styles = StyleSheet.create({
   touchable: {
     flex: 1,
-    marginBottom: 8,
   },
   container: {
-    borderWidth: 1.5,
-    borderRadius: 8,
+    borderRadius: 36,
   },
   content: {
     marginHorizontal: 16,

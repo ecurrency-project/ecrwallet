@@ -1,0 +1,13 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/PTSansBold.ttf",
+      "sha1": "356c8987ef7a8752108cf7b7a86d1f1bf0c60999"
+    },
+    {
+      "path": "assets/fonts/PTSansRegular.ttf",
+      "sha1": "641626d5d6a625a1e46e09ceb806cf33d1c1867e"
+    }
+  ]
+}

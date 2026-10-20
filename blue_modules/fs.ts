@@ -74,7 +74,7 @@ export const openSignedTransaction = async function (): Promise<string | false> 
     const res = await DocumentPicker.pickSingle({
       type:
         Platform.OS === 'ios'
-          ? ['io.bluewallet.psbt', 'io.bluewallet.psbt.txn', DocumentPicker.types.json]
+          ? [DocumentPicker.types.plainText, DocumentPicker.types.json]
           : [DocumentPicker.types.allFiles],
     });
 
@@ -145,14 +145,7 @@ export const showFilePickerAndReadFile = async function (): Promise<{ data: stri
       copyTo: 'cachesDirectory',
       type:
         Platform.OS === 'ios'
-          ? [
-              'io.bluewallet.psbt',
-              'io.bluewallet.psbt.txn',
-              'io.bluewallet.backup',
-              DocumentPicker.types.plainText,
-              DocumentPicker.types.json,
-              DocumentPicker.types.images,
-            ]
+          ? ['org.ecrwallet.backup', DocumentPicker.types.plainText, DocumentPicker.types.json, DocumentPicker.types.images]
           : [DocumentPicker.types.allFiles],
     });
 

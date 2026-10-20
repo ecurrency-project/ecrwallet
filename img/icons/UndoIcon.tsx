@@ -1,0 +1,20 @@
+import React, { FunctionComponent } from 'react';
+import { Svg, Path } from 'react-native-svg';
+
+interface Props {
+  size?: number;
+  color: string;
+}
+
+const UndoIcon: FunctionComponent<Props> = ({ size = 24, color }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M9 13H3V7M3 13L6 10.3C7.64885 8.82116 9.78512 8.00226 12 8C14.3869 8 16.6761 8.94821 18.364 10.636C20.0518 12.3239 21 14.6131 21 17"
+      stroke={color}
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </Svg>
+);
+
+export default UndoIcon;

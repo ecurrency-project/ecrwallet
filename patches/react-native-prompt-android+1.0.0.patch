@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-prompt-android/android/build.gradle b/node_modules/react-native-prompt-android/android/build.gradle
+index 8bd60b3..52e6135 100644
+--- a/node_modules/react-native-prompt-android/android/build.gradle
++++ b/node_modules/react-native-prompt-android/android/build.gradle
+@@ -22,7 +22,8 @@ android {
+ 
+ repositories {
+     mavenLocal()
+-    jcenter()
++    google()
++    mavenCentral()
+     maven {
+         // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+         url "$projectDir/../../../node_modules/react-native/android"

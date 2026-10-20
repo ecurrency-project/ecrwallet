@@ -1,4 +1,7 @@
 module.exports = {
-  presets: ['module:@react-native/babel-preset'],
-  plugins: ['react-native-reanimated/plugin'], // required by react-native-reanimated v2 https://docs.swmansion.com/react-native-reanimated/docs/installation/
+  // Pin the @babel/runtime version so Metro resolves a single copy instead of
+  // bundling duplicate helpers, which bloats the bundle.
+  // See https://github.com/babel/babel/issues/18050
+  presets: [['module:@react-native/babel-preset', { enableBabelRuntime: '^7.26.0' }]],
+  plugins: ['react-native-worklets/plugin'],
 };

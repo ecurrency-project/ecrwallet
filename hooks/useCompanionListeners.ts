@@ -2,7 +2,6 @@ import { CommonActions } from '@react-navigation/native';
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, AppStateStatus, Linking } from 'react-native';
 import A from '../blue_modules/analytics';
-import { getClipboardContent } from '../blue_modules/clipboard';
 import { updateExchangeRate } from '../blue_modules/currency';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapticFeedback';
 import {
@@ -13,12 +12,10 @@ import {
   removeAllDeliveredNotifications,
   setApplicationIconBadgeNumber,
 } from '../blue_modules/notifications';
-import { LightningCustodianWallet } from '../class';
 import DeeplinkSchemaMatch from '../class/deeplink-schema-match';
 import loc from '../loc';
 import { Chain } from '../models/bitcoinUnits';
 import { navigationRef } from '../NavigationService';
-import ActionSheet from '../screen/ActionSheet';
 import { useStorage } from './context/useStorage';
 import RNQRGenerator from 'rn-qr-generator';
 import presentAlert from '../components/Alert';
@@ -28,11 +25,6 @@ import useDeviceQuickActions from './useDeviceQuickActions';
 import useHandoffListener from './useHandoffListener';
 import useMenuElements from './useMenuElements';
 import { useExtendedNavigation } from './useExtendedNavigation';
-
-const ClipboardContentType = Object.freeze({
-  BITCOIN: 'BITCOIN',
-  LIGHTNING: 'LIGHTNING',
-});
 
 /**
  * Hook that initializes all companion listeners and functionality without rendering a component
@@ -48,7 +40,6 @@ const useCompanionListeners = (skipIfNotInitialized = true) => {
     walletsInitialized,
   } = useStorage();
   const appState = useRef<AppStateStatus>(AppState.currentState);
-  const clipboardContent = useRef<undefined | string>();
   const navigation = useExtendedNavigation();
 
   // We need to call hooks unconditionally before any conditional logic
@@ -249,79 +240,21 @@ const useCompanionListeners = (skipIfNotInitialized = true) => {
     [wallets, addWallet, saveToDisk, setSharedCosigner, shouldActivateListeners],
   );
 
-  const showClipboardAlert = useCallback(
-    ({ contentType }: { contentType: undefined | string }) => {
-      if (!shouldActivateListeners) return;
-
-      triggerHapticFeedback(HapticFeedbackTypes.ImpactLight);
-      getClipboardContent().then(clipboard => {
-        if (!clipboard) return;
-        ActionSheet.showActionSheetWithOptions(
-          {
-            title: loc._.clipboard,
-            message: contentType === ClipboardContentType.BITCOIN ? loc.wallets.clipboard_bitcoin : loc.wallets.clipboard_lightning,
-            options: [loc._.cancel, loc._.continue],
-            cancelButtonIndex: 0,
-          },
-          buttonIndex => {
-            switch (buttonIndex) {
-              case 0:
-                break;
-              case 1:
-                handleOpenURL({ url: clipboard });
-                break;
-            }
-          },
-        );
-      });
-    },
-    [handleOpenURL, shouldActivateListeners],
-  );
-
   const handleAppStateChange = useCallback(
     async (nextAppState: AppStateStatus | undefined) => {
       if (!shouldActivateListeners || wallets.length === 0) return;
 
       if ((appState.current.match(/background/) && nextAppState === 'active') || nextAppState === undefined) {
         setTimeout(() => A(A.ENUM.APP_UNSUSPENDED), 2000);
-        updateExchangeRate();
+        await updateExchangeRate();
         const processed = await processPushNotifications();
         if (processed) return;
-        const clipboard = await getClipboardContent();
-        if (!clipboard) return;
-        const isAddressFromStoredWallet = wallets.some(wallet => {
-          if (wallet.chain === Chain.ONCHAIN) {
-            return wallet.isAddressValid && wallet.isAddressValid(clipboard) && wallet.weOwnAddress(clipboard);
-          } else {
-            return (wallet as LightningCustodianWallet).isInvoiceGeneratedByWallet(clipboard) || wallet.weOwnAddress(clipboard);
-          }
-        });
-        const isBitcoinAddress = DeeplinkSchemaMatch.isBitcoinAddress(clipboard);
-        const isLightningInvoice = DeeplinkSchemaMatch.isLightningInvoice(clipboard);
-        const isLNURL = DeeplinkSchemaMatch.isLnUrl(clipboard);
-        const isBothBitcoinAndLightning = DeeplinkSchemaMatch.isBothBitcoinAndLightning(clipboard);
-        if (
-          !isAddressFromStoredWallet &&
-          clipboardContent.current !== clipboard &&
-          (isBitcoinAddress || isLightningInvoice || isLNURL || isBothBitcoinAndLightning)
-        ) {
-          let contentType;
-          if (isBitcoinAddress) {
-            contentType = ClipboardContentType.BITCOIN;
-          } else if (isLightningInvoice || isLNURL) {
-            contentType = ClipboardContentType.LIGHTNING;
-          } else if (isBothBitcoinAndLightning) {
-            contentType = ClipboardContentType.BITCOIN;
-          }
-          showClipboardAlert({ contentType });
-        }
-        clipboardContent.current = clipboard;
       }
       if (nextAppState) {
         appState.current = nextAppState;
       }
     },
-    [processPushNotifications, showClipboardAlert, wallets, shouldActivateListeners],
+    [processPushNotifications, wallets, shouldActivateListeners],
   );
 
   const addListeners = useCallback(() => {

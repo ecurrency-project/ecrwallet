@@ -144,7 +144,7 @@ const EncryptStorage = () => {
   };
 
   return (
-    <SafeAreaScrollView>
+    <SafeAreaScrollView style={styles.root}>
       <View style={styles.paddingTop} />
       {state.deviceBiometricCapable && (
         <>
@@ -235,8 +235,16 @@ const EncryptStorage = () => {
 };
 
 const styles = StyleSheet.create({
-  paddingTop: { paddingTop: 19 },
-  row: { minHeight: 60 },
+  root: {
+    paddingHorizontal: 16,
+  },
+  paddingTop: {
+    paddingTop: 19,
+  },
+  row: {
+    minHeight: 60,
+    borderBottomWidth: 0,
+  },
   subtitleText: {
     fontSize: 14,
     marginTop: 5,

@@ -5,7 +5,7 @@ import { Icon } from '@rneui/themed';
 
 import { btcToSatoshi, fiatToBTC } from '../../blue_modules/currency';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueCard } from '../../BlueComponents';
+import { BlueCard, Styles } from '../../BlueComponents';
 import Lnurl from '../../class/lnurl';
 import AddressInput from '../../components/AddressInput';
 import presentAlert from '../../components/Alert';
@@ -52,9 +52,11 @@ const ScanLNDInvoice = () => {
   const [expiresIn, setExpiresIn] = useState<string | undefined>();
   const stylesHook = StyleSheet.create({
     walletWrapLabel: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
     walletWrapBalance: {
+      ...Styles.fonts['P2 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
     walletWrapSats: {
@@ -64,9 +66,9 @@ const ScanLNDInvoice = () => {
       backgroundColor: colors.elevated,
     },
     expiresIn: {
+      ...Styles.fonts['P1 Regular'],
       writingDirection: direction,
       color: '#81868e',
-      fontSize: 12,
       left: 20,
       top: 10,
     },
@@ -189,7 +191,7 @@ const ScanLNDInvoice = () => {
       case BitcoinUnit.SATS:
         // amount is already in sats
         break;
-      case BitcoinUnit.BTC:
+      case BitcoinUnit.ECR:
         amountSats = btcToSatoshi(amount);
         break;
       case BitcoinUnit.LOCAL_CURRENCY:
@@ -463,9 +465,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   descriptionText: {
+    ...Styles.fonts['P1 Regular'],
     color: '#81868e',
-    fontWeight: '500',
-    fontSize: 14,
   },
   addressInput: {
     marginHorizontal: 16,

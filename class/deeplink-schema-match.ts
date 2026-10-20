@@ -1,5 +1,5 @@
 import bip21, { TOptions } from 'bip21';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import URL from 'url';
 import { readFileOutsideSandbox } from '../blue_modules/fs';
 import { Chain } from '../models/bitcoinUnits';
@@ -7,6 +7,7 @@ import { WatchOnlyWallet } from './';
 import Azteco from './azteco';
 import Lnurl from './lnurl';
 import type { TWallet } from './wallets/types';
+import { network } from '../models/ecurrencyNetwork.ts';
 
 type TCompletionHandlerParams = [string, object];
 type TContext = {
@@ -213,14 +214,6 @@ class DeeplinkSchemaMatch {
       (async () => {
         if (urlObject.protocol === 'bluewallet:' || urlObject.protocol === 'lapp:' || urlObject.protocol === 'blue:') {
           switch (urlObject.host) {
-            case 'setelectrumserver':
-              completionHandler([
-                'ElectrumSettings',
-                {
-                  server: DeeplinkSchemaMatch.getServerFromSetElectrumServerAction(event.url),
-                },
-              ]);
-              break;
             case 'setlndhuburl':
               completionHandler([
                 'LightningSettings',
@@ -341,6 +334,18 @@ class DeeplinkSchemaMatch {
     return isValidLightningInvoice;
   }
 
+  static isEcurrencyAddress(address: string): boolean {
+    address = address.replace('://', ':').replace('ecurrency:', '').replace('ecr:', '').split('?')[0];
+    let isValidEcurrencyAddress = false;
+    try {
+      bitcoin.qbitcoinAddress.toScriptHash(address, network);
+      isValidEcurrencyAddress = true;
+    } catch (err) {
+      isValidEcurrencyAddress = false;
+    }
+    return isValidEcurrencyAddress;
+  }
+
   static isLnUrl(text: string): boolean {
     return Lnurl.isLnurl(text);
   }
@@ -404,20 +409,14 @@ class DeeplinkSchemaMatch {
       throw new Error('No URI provided');
     }
     let replacedUri = uri;
-    for (const replaceMe of ['BITCOIN://', 'bitcoin://', 'BITCOIN:']) {
-      replacedUri = replacedUri.replace(replaceMe, 'bitcoin:');
+    for (const replaceMe of ['ECR://', 'ecr://', 'ECR:']) {
+      replacedUri = replacedUri.replace(replaceMe, 'ecr:');
     }
 
-    return bip21.decode(replacedUri);
+    return bip21.decode(replacedUri, 'ecr');
   }
 
   static bip21encode(address: string, options?: TOptions): string {
-    // uppercase address if bech32 to satisfy BIP_0173
-    const isBech32 = address.startsWith('bc1');
-    if (isBech32) {
-      address = address.toUpperCase();
-    }
-
     for (const key in options) {
       if (key === 'label' && String(options[key]).replace(' ', '').length === 0) {
         delete options[key];
@@ -426,10 +425,10 @@ class DeeplinkSchemaMatch {
         delete options[key];
       }
     }
-    return bip21.encode(address, options);
+    return bip21.encode(address, options, 'ecr');
   }
 
-  static decodeBitcoinUri(uri: string) {
+  static decodeEcurrencyUri(uri: string) {
     let amount;
     let address = uri || '';
     let memo = '';

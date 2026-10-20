@@ -1,6 +1,6 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, JSX } from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { ListItem } from '@rneui/themed';
 import Share from 'react-native-share';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
@@ -19,6 +19,7 @@ import ToolTipMenu from '../TooltipMenu';
 import { CommonToolTipActions } from '../../typings/CommonToolTipActions';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import HighlightedText from '../HighlightedText';
+import { BlueText } from '../../BlueComponents';
 
 interface AddressItemProps {
   item: any;
@@ -175,9 +176,9 @@ const AddressItem = ({
     }
 
     return (
-      <Text style={[stylesHook.address, styles.address]} numberOfLines={1} ellipsizeMode="middle">
+      <BlueText style={[stylesHook.address, styles.address]} numberOfLines={1} ellipsizeMode="middle">
         {item.address}
-      </Text>
+      </BlueText>
     );
   };
 
@@ -185,29 +186,29 @@ const AddressItem = ({
     <ToolTipMenu
       title={item.address}
       actions={menuActions}
+      isButton
+      onPress={navigateToReceive}
       onPressMenuItem={onToolTipPress}
       // Revisit once RNMenu has renderPreview prop
       renderPreview={renderPreview}
-      onPress={navigateToReceive}
-      isButton
     >
       <ListItem key={item.key} containerStyle={stylesHook.container}>
         <ListItem.Content>
           <View style={styles.row}>
             <View style={styles.leftSection}>
-              <Text style={[styles.index, stylesHook.index]}>{item.index}</Text>
+              <BlueText style={stylesHook.index}>{item.index}</BlueText>
             </View>
             <View style={styles.middleSection}>
               {renderAddressContent()}
-              <Text style={[stylesHook.balance, styles.balance]}>{balance}</Text>
+              <BlueText style={[stylesHook.balance, styles.balance]}>{balance}</BlueText>
             </View>
           </View>
         </ListItem.Content>
         <View style={styles.rightContainer}>
           <AddressTypeBadge isInternal={item.isInternal} hasTransactions={hasTransactions} />
-          <Text style={[stylesHook.balance, styles.balance]}>
+          <BlueText style={[stylesHook.balance, styles.balance]}>
             {loc.addresses.transactions}: {item.transactions ?? 0}
-          </Text>
+          </BlueText>
         </View>
       </ListItem>
     </ToolTipMenu>
@@ -216,11 +217,7 @@ const AddressItem = ({
 
 const styles = StyleSheet.create({
   address: {
-    fontWeight: 'bold',
     marginHorizontal: 4,
-  },
-  index: {
-    fontSize: 15,
   },
   balance: {
     marginTop: 4,

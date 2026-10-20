@@ -7,10 +7,10 @@
  */
 import * as necc from '@noble/secp256k1';
 import { TinySecp256k1Interface as TinySecp256k1InterfaceBIP32 } from 'bip32/types/bip32';
-import { XOnlyPointAddTweakResult } from 'bitcoinjs-lib/src/types';
+import { XOnlyPointAddTweakResult } from '@qbtc/bitcoinjs-lib/src/types';
 import { hmac } from '@noble/hashes/hmac';
 import { sha256 } from '@noble/hashes/sha2';
-import { TinySecp256k1Interface } from 'ecpair';
+import { TinySecp256k1Interface } from '@qbtc/ecpair';
 
 export interface TinySecp256k1InterfaceExtended {
   pointMultiply(p: Uint8Array, tweak: Uint8Array, compressed?: boolean): Uint8Array | null;

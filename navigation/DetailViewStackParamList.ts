@@ -83,7 +83,7 @@ export type DetailViewStackParamList = {
   NetworkSettings: undefined;
   About: undefined;
   DefaultView: undefined;
-  ElectrumSettings: { server?: ElectrumServerItem; onBarScanned?: string };
+  ElectrumSettings: undefined;
   SettingsBlockExplorer: undefined;
   EncryptStorage: undefined;
   Language: undefined;
@@ -93,7 +93,6 @@ export type DetailViewStackParamList = {
   };
   NotificationSettings: undefined;
   SelfTest: undefined;
-  ReleaseNotes: undefined;
   ToolsScreen: undefined;
   SettingsPrivacy: undefined;
   ViewEditMultisigCosigners: { walletID: string; cosigners: string[]; onBarScanned?: string };

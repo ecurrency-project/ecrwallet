@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useRoute } from '@react-navigation/native';
+import { useLocale, useRoute } from '@react-navigation/native';
 import { ActivityIndicator, Keyboard, LayoutAnimation, Platform, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import { Icon } from '@rneui/themed';
-import Share from 'react-native-share';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueFormLabel } from '../../BlueComponents';
+import { BlueFormLabel, Styles } from '../../BlueComponents';
 import presentAlert from '../../components/Alert';
-import { FButton, FContainer } from '../../components/FloatButtons';
 import { useTheme } from '../../components/themes';
 import loc from '../../loc';
 import { useStorage } from '../../hooks/context/useStorage';
@@ -15,18 +12,21 @@ import {
   DoneAndDismissKeyboardInputAccessoryViewID,
 } from '../../components/DoneAndDismissKeyboardInputAccessory';
 import { BlueSpacing10, BlueSpacing20, BlueSpacing40 } from '../../components/BlueSpacing';
+import { SecondButton } from '../../components/SecondButton';
+import Button from '../../components/Button';
 
 const SignVerify = () => {
   const { colors } = useTheme();
   const { wallets, sleep } = useStorage();
   const { params } = useRoute();
+  const { direction } = useLocale();
+
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [address, setAddress] = useState(params.address ?? '');
   const [message, setMessage] = useState(params.message ?? '');
   const [signature, setSignature] = useState('');
   const [loading, setLoading] = useState(false);
   const [messageHasFocus, setMessageHasFocus] = useState(false);
-  const [isShareVisible, setIsShareVisible] = useState(false);
 
   const wallet = wallets.find(w => w.getID() === params.walletID);
   const isToolbarVisibleForAndroid = Platform.OS === 'android' && messageHasFocus && isKeyboardVisible;
@@ -48,19 +48,12 @@ const SignVerify = () => {
     root: {
       backgroundColor: colors.elevated,
     },
-    text: {
+    input: {
       borderColor: colors.formBorder,
       borderBottomColor: colors.formBorder,
       backgroundColor: colors.inputBackgroundColor,
-      color: colors.foregroundColor,
     },
   });
-
-  const handleShare = () => {
-    const baseUri = 'https://bluewallet.github.io/VerifySignature';
-    const uri = `${baseUri}?a=${address}&m=${encodeURIComponent(message)}&s=${encodeURIComponent(signature)}`;
-    Share.open({ message: uri }).catch(error => console.log(error));
-  };
 
   const handleSign = async () => {
     setLoading(true);
@@ -69,7 +62,6 @@ const SignVerify = () => {
     try {
       newSignature = wallet.signMessage(message, address);
       setSignature(newSignature);
-      setIsShareVisible(true);
     } catch (e) {
       triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
       presentAlert({ title: loc.errors.error, message: e.message });
@@ -125,82 +117,73 @@ const SignVerify = () => {
         </>
       )}
 
-      <TextInput
-        multiline
-        textAlignVertical="top"
-        blurOnSubmit
-        placeholder={loc.addresses.sign_placeholder_address}
-        placeholderTextColor="#81868e"
-        value={address}
-        onChangeText={t => setAddress(t.replace('\n', ''))}
-        testID="Signature"
-        style={[styles.text, stylesHooks.text]}
-        autoCorrect={false}
-        autoCapitalize="none"
-        spellCheck={false}
-        editable={!loading}
-      />
+      <View style={[styles.input, stylesHooks.input]}>
+        <TextInput
+          multiline
+          textAlignVertical="top"
+          placeholder={loc.addresses.sign_placeholder_address}
+          placeholderTextColor="#81868e"
+          value={address}
+          onChangeText={t => setAddress(t.replace('\n', ''))}
+          testID="Signature"
+          style={[styles.inputText, { writingDirection: direction }]}
+          autoCorrect={false}
+          autoCapitalize="none"
+          spellCheck={false}
+          editable={!loading}
+        />
+      </View>
+
       <BlueSpacing10 />
 
-      <TextInput
-        multiline
-        textAlignVertical="top"
-        blurOnSubmit
-        placeholder={loc.addresses.sign_placeholder_signature}
-        placeholderTextColor="#81868e"
-        value={signature}
-        onChangeText={t => setSignature(t.replace('\n', ''))}
-        testID="Signature"
-        style={[styles.text, stylesHooks.text]}
-        autoCorrect={false}
-        autoCapitalize="none"
-        spellCheck={false}
-        editable={!loading}
-      />
+      <View style={[styles.input, stylesHooks.input]}>
+        <TextInput
+          multiline
+          textAlignVertical="top"
+          placeholder={loc.addresses.sign_placeholder_signature}
+          placeholderTextColor="#81868e"
+          value={signature}
+          onChangeText={t => setSignature(t.replace('\n', ''))}
+          testID="Signature"
+          style={[styles.inputText, { writingDirection: direction }]}
+          autoCorrect={false}
+          autoCapitalize="none"
+          spellCheck={false}
+          editable={!loading}
+        />
+      </View>
       <BlueSpacing10 />
 
-      <TextInput
-        multiline
-        placeholder={loc.addresses.sign_placeholder_message}
-        placeholderTextColor="#81868e"
-        value={message}
-        onChangeText={setMessage}
-        testID="Message"
-        inputAccessoryViewID={DoneAndDismissKeyboardInputAccessoryViewID}
-        style={[styles.flex, styles.text, styles.textMessage, stylesHooks.text]}
-        autoCorrect={false}
-        autoCapitalize="none"
-        spellCheck={false}
-        editable={!loading}
-        onFocus={() => handleFocus(true)}
-        onBlur={() => handleFocus(false)}
-      />
+      <View style={[styles.input, styles.multiLineInput, stylesHooks.input]}>
+        <TextInput
+          multiline
+          placeholder={loc.addresses.sign_placeholder_message}
+          placeholderTextColor="#81868e"
+          value={message}
+          onChangeText={setMessage}
+          testID="Message"
+          inputAccessoryViewID={DoneAndDismissKeyboardInputAccessoryViewID}
+          style={[styles.inputText, styles.flex, { writingDirection: direction }]}
+          autoCorrect={false}
+          autoCapitalize="none"
+          spellCheck={false}
+          editable={!loading}
+          onFocus={() => handleFocus(true)}
+          onBlur={() => handleFocus(false)}
+        />
+      </View>
       <BlueSpacing40 />
-
-      {isShareVisible && !isKeyboardVisible && (
-        <>
-          <FContainer inline>
-            <FButton
-              onPress={handleShare}
-              text={loc.multisig.share}
-              icon={
-                <View style={styles.buttonsIcon}>
-                  <Icon name="external-link" size={16} type="font-awesome" color={colors.buttonAlternativeTextColor} />
-                </View>
-              }
-            />
-          </FContainer>
-          <BlueSpacing10 />
-        </>
-      )}
 
       {!isKeyboardVisible && (
         <>
-          <FContainer inline>
-            <FButton onPress={handleSign} text={loc.addresses.sign_sign} disabled={loading} />
-            <FButton onPress={handleVerify} text={loc.addresses.sign_verify} disabled={loading} />
-          </FContainer>
-          <BlueSpacing10 />
+          <View style={styles.buttonContainer}>
+            <View style={styles.button}>
+              <SecondButton title={loc.addresses.sign_sign} disabled={loading} onPress={handleSign} />
+            </View>
+            <View style={styles.button}>
+              <Button onPress={handleVerify} title={loc.addresses.sign_verify} disabled={loading} />
+            </View>
+          </View>
         </>
       )}
 
@@ -237,18 +220,13 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  text: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    marginTop: 5,
-    marginHorizontal: 20,
-    borderWidth: 1,
-    borderBottomWidth: 0.5,
-    borderRadius: 4,
-    textAlignVertical: 'top',
+  buttonContainer: {
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
   },
-  textMessage: {
-    minHeight: 50,
+  button: {
+    width: '45%',
   },
   flex: {
     flex: 1,
@@ -261,5 +239,25 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  input: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    minHeight: 44,
+    height: 44,
+    alignItems: 'center',
+    borderRadius: 24,
+    marginHorizontal: 16,
+  },
+  inputText: {
+    ...Styles.fonts['P2 Regular'],
+    flex: 1,
+    marginHorizontal: 16,
+    minHeight: 33,
+    color: '#81868e',
+  },
+  multiLineInput: {
+    alignItems: 'flex-start',
+    flex: 0.5,
   },
 });

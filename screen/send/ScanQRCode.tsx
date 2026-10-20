@@ -1,12 +1,12 @@
 import { RouteProp, StackActions, useIsFocused, useRoute } from '@react-navigation/native';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import { sha256 } from '@noble/hashes/sha256';
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import Base43 from '../../blue_modules/base43';
 import * as fs from '../../blue_modules/fs';
 import { BlueURDecoder, decodeUR, extractSingleWorkload } from '../../blue_modules/ur';
-import { BlueText } from '../../BlueComponents';
+import { BlueText, Styles } from '../../BlueComponents';
 import { openPrivacyDesktopSettings } from '../../class/camera';
 import Button from '../../components/Button';
 import { useTheme } from '../../components/themes';
@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
   backdoorInputWrapper: { position: 'absolute', left: '5%', top: '0%', width: '90%', height: '70%', backgroundColor: 'white' },
   progressWrapper: { position: 'absolute', alignSelf: 'center', alignItems: 'center', top: '50%', padding: 8, borderRadius: 8 },
   backdoorInput: {
+    ...Styles.fonts['P2 Regular'],
     height: '50%',
     marginTop: 5,
     marginHorizontal: 20,

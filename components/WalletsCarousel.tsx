@@ -2,7 +2,6 @@ import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, u
 import {
   Animated,
   FlatList,
-  ImageBackground,
   Platform,
   Pressable,
   StyleSheet,
@@ -15,9 +14,6 @@ import {
   LayoutAnimation,
   UIManager,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { LightningCustodianWallet, MultisigHDWallet } from '../class';
-import WalletGradient from '../class/wallet-gradient';
 import { useSizeClass, SizeClass } from '../blue_modules/sizeClass';
 import loc, { formatBalance, transactionTimeToReadable } from '../loc';
 import { BlurredBalanceView } from './BlurredBalanceView';
@@ -28,6 +24,8 @@ import { Transaction, TWallet } from '../class/wallets/types';
 import HighlightedText from './HighlightedText';
 import { BlueSpacing10 } from './BlueSpacing';
 import { useLocale } from '@react-navigation/native';
+import { BlueText, Styles } from '../BlueComponents';
+import LogoIcon from '../img/icons/LogoIcon.tsx';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -39,28 +37,26 @@ interface NewWalletPanelProps {
 
 const nStyles = StyleSheet.create({
   container: {
-    borderRadius: 10,
+    borderRadius: 20,
     minHeight: Platform.OS === 'ios' ? 164 : 181,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   addAWAllet: {
-    fontWeight: '600',
+    ...Styles.fonts['P4 Bold'],
     fontSize: 24,
+    lineHeight: 30,
     marginBottom: 4,
-  },
-  addLine: {
-    fontSize: 13,
   },
   button: {
     marginTop: 12,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#D53131',
     paddingHorizontal: 32,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 40,
   },
   buttonText: {
-    fontWeight: '500',
+    color: '#ffffff',
   },
 });
 
@@ -115,15 +111,15 @@ const NewWalletPanel: React.FC<NewWalletPanelProps> = ({ onPress }) => {
         style={[
           nStyles.container,
           nStylesHooks.container,
-          { backgroundColor: WalletGradient.createWallet() },
+          { backgroundColor: colors.lightButton },
           isLarge ? {} : { width: itemWidth },
           { transform: [{ scale }] },
         ]}
       >
-        <Text style={[nStyles.addAWAllet, { color: colors.foregroundColor }]}>{loc.wallets.list_create_a_wallet}</Text>
-        <Text style={[nStyles.addLine, { color: colors.alternativeTextColor }]}>{loc.wallets.list_create_a_wallet_text}</Text>
+        <BlueText style={[nStyles.addAWAllet, { color: colors.foregroundColor }]}>{loc.wallets.list_create_a_wallet}</BlueText>
+        <BlueText style={{ color: colors.alternativeTextColor }}>{loc.wallets.list_create_a_wallet_text}</BlueText>
         <View style={nStyles.button}>
-          <Text style={[nStyles.buttonText, { color: colors.brandingColor }]}>{loc.wallets.list_create_a_button}</Text>
+          <BlueText style={nStyles.buttonText}>{loc.wallets.list_create_a_button}</BlueText>
         </View>
       </Animated.View>
     </Pressable>
@@ -156,35 +152,34 @@ const iStyles = StyleSheet.create({
     minHeight: 164,
   },
   balanceContainer: {
-    height: 40,
+    height: 46,
   },
   image: {
-    width: 99,
-    height: 94,
+    width: 70,
+    height: 70,
     position: 'absolute',
-    bottom: 0,
-    right: 0,
+    bottom: 10,
+    right: 10,
   },
   br: {
     backgroundColor: 'transparent',
   },
   label: {
     backgroundColor: 'transparent',
-    fontSize: 19,
+    ...Styles.fonts['P3 Regular'],
   },
   balance: {
+    ...Styles.fonts['P4 Bold'],
     backgroundColor: 'transparent',
-    fontWeight: 'bold',
-    fontSize: 36,
   },
   latestTx: {
+    ...Styles.fonts['P2 Regular'],
     backgroundColor: 'transparent',
-    fontSize: 13,
   },
   latestTxTime: {
+    ...Styles.fonts['P2 Bold'],
     backgroundColor: 'transparent',
     fontWeight: 'bold',
-    fontSize: 16,
   },
   shadowContainer: {
     ...Platform.select({
@@ -302,18 +297,6 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
       }
     }, [isExiting, animationsEnabled, translateYValue, opacityValue]);
 
-    let image;
-    switch (item.type) {
-      case LightningCustodianWallet.type:
-        image = direction === 'rtl' ? require('../img/lnd-shape-rtl.png') : require('../img/lnd-shape.png');
-        break;
-      case MultisigHDWallet.type:
-        image = direction === 'rtl' ? require('../img/vault-shape-rtl.png') : require('../img/vault-shape.png');
-        break;
-      default:
-        image = direction === 'rtl' ? require('../img/btc-shape-rtl.png') : require('../img/btc-shape.png');
-    }
-
     let latestTransactionText;
 
     if (walletTransactionUpdateStatus === WalletTransactionsStatus.ALL || walletTransactionUpdateStatus === item.getID()) {
@@ -353,22 +336,24 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
           delayHoverOut={0}
         >
           <View style={[iStyles.shadowContainer, { backgroundColor: colors.background, shadowColor: colors.shadowColor }]}>
-            <LinearGradient colors={WalletGradient.gradientsFor(item.type)} style={iStyles.grad}>
-              <ImageBackground source={image} style={iStyles.image} />
+            <View style={[iStyles.grad, { backgroundColor: colors.lightButton }]}>
+              <View style={iStyles.image}>
+                <LogoIcon size={70} />
+              </View>
               <Text style={iStyles.br} />
               {!isPlaceHolder && (
                 <>
-                  <Text numberOfLines={1} style={[iStyles.label, { color: colors.inverseForegroundColor, writingDirection: direction }]}>
+                  <BlueText numberOfLines={1} style={[iStyles.label, { color: colors.foregroundColor, writingDirection: direction }]}>
                     {renderHighlightedText && searchQuery ? (
                       <HighlightedText
                         text={item.getLabel()}
                         query={searchQuery}
-                        style={[iStyles.label, { color: colors.inverseForegroundColor, writingDirection: direction }]}
+                        style={[iStyles.label, { color: colors.foregroundColor, writingDirection: direction }]}
                       />
                     ) : (
                       item.getLabel()
                     )}
-                  </Text>
+                  </BlueText>
                   <View style={iStyles.balanceContainer}>
                     {item.hideBalance ? (
                       <>
@@ -376,29 +361,29 @@ export const WalletCarouselItem: React.FC<WalletCarouselItemProps> = React.memo(
                         <BlurredBalanceView />
                       </>
                     ) : (
-                      <Text
+                      <BlueText
                         numberOfLines={1}
                         adjustsFontSizeToFit
                         key={`${balance}`} // force component recreation on balance change. To fix right-to-left languages, like Farsi
-                        style={[iStyles.balance, { color: colors.inverseForegroundColor, writingDirection: direction }]}
+                        style={[iStyles.balance, { color: colors.foregroundColor, writingDirection: direction }]}
                       >
                         {`${balance} `}
-                      </Text>
+                      </BlueText>
                     )}
                   </View>
                   <Text style={iStyles.br} />
-                  <Text numberOfLines={1} style={[iStyles.latestTx, { color: colors.inverseForegroundColor, writingDirection: direction }]}>
+                  <BlueText numberOfLines={1} style={[iStyles.latestTx, { color: colors.foregroundColor, writingDirection: direction }]}>
                     {loc.wallets.list_latest_transaction}
-                  </Text>
-                  <Text
+                  </BlueText>
+                  <BlueText
                     numberOfLines={1}
-                    style={[iStyles.latestTxTime, { color: colors.inverseForegroundColor, writingDirection: direction }]}
+                    style={[iStyles.latestTxTime, { color: colors.foregroundColor, writingDirection: direction }]}
                   >
                     {latestTransactionText}
-                  </Text>
+                  </BlueText>
                 </>
               )}
-            </LinearGradient>
+            </View>
           </View>
         </Pressable>
       </Animated.View>

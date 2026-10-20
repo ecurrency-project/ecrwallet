@@ -1,11 +1,12 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, Animated, Easing, ViewStyle, Keyboard, Platform, UIManager } from 'react-native';
+import { View, TextInput, StyleSheet, Animated, Easing, ViewStyle, Keyboard, Platform, UIManager } from 'react-native';
 import BottomModal, { BottomModalHandle } from './BottomModal';
 import { useTheme } from '../components/themes';
 import loc from '../loc';
 import { SecondButton } from './SecondButton';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapticFeedback';
 import { useKeyboard } from '../hooks/useKeyboard';
+import { BlueText, Styles } from '../BlueComponents';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -61,10 +62,10 @@ const PromptPasswordConfirmationModal = forwardRef<PromptPasswordConfirmationMod
         width: '100%',
       },
       feeModalCustomText: {
-        color: colors.buttonAlternativeTextColor,
+        color: colors.foregroundColor,
       },
       feeModalLabel: {
-        color: colors.successColor,
+        color: colors.foregroundColor,
       },
     });
 
@@ -291,14 +292,16 @@ const PromptPasswordConfirmationModal = forwardRef<PromptPasswordConfirmationMod
           <Animated.View style={[animatedViewStyle, styles.minHeight]}>
             {modalType === MODAL_TYPES.CREATE_PASSWORD && showExplanation && (
               <Animated.View style={{ opacity: explanationOpacity }}>
-                <Text style={[styles.textLabel, stylesHook.feeModalLabel]}>{loc.settings.encrypt_storage_explanation_headline}</Text>
+                <BlueText style={[styles.textLabel, stylesHook.feeModalLabel]}>
+                  {loc.settings.encrypt_storage_explanation_headline}
+                </BlueText>
                 <Animated.View>
-                  <Text style={[styles.description, stylesHook.feeModalCustomText]} maxFontSizeMultiplier={1.2}>
+                  <BlueText style={[styles.description, stylesHook.feeModalCustomText]} maxFontSizeMultiplier={1.2}>
                     {loc.settings.encrypt_storage_explanation_description_line1}
-                  </Text>
-                  <Text style={[styles.description, stylesHook.feeModalCustomText]} maxFontSizeMultiplier={1.2}>
+                  </BlueText>
+                  <BlueText style={[styles.description, stylesHook.feeModalCustomText]} maxFontSizeMultiplier={1.2}>
                     {loc.settings.encrypt_storage_explanation_description_line2}
-                  </Text>
+                  </BlueText>
                 </Animated.View>
                 <View style={styles.feeModalFooter} />
               </Animated.View>
@@ -306,13 +309,13 @@ const PromptPasswordConfirmationModal = forwardRef<PromptPasswordConfirmationMod
             {(modalType === MODAL_TYPES.ENTER_PASSWORD ||
               ((modalType === MODAL_TYPES.CREATE_PASSWORD || modalType === MODAL_TYPES.CREATE_FAKE_STORAGE) && !showExplanation)) && (
               <>
-                <Text adjustsFontSizeToFit style={[styles.textLabel, stylesHook.feeModalLabel]}>
+                <BlueText adjustsFontSizeToFit style={[styles.textLabel, stylesHook.feeModalLabel]}>
                   {modalType === MODAL_TYPES.CREATE_PASSWORD
                     ? loc.settings.password_explain
                     : modalType === MODAL_TYPES.CREATE_FAKE_STORAGE
                       ? `${loc.settings.password_explain} ${loc.plausibledeniability.create_password_explanation}`
                       : loc._.enter_password}
-                </Text>
+                </BlueText>
                 <View style={styles.inputContainer}>
                   <Animated.View style={{ transform: [{ translateX: shakeAnimation }] }}>
                     <TextInput
@@ -413,20 +416,20 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   input: {
-    borderRadius: 4,
-    padding: 8,
+    ...Styles.fonts['P2 Regular'],
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     marginVertical: 8,
-    fontSize: 16,
     width: '100%',
   },
   textLabel: {
-    fontSize: 20,
-    fontWeight: '600',
+    ...Styles.fonts['P3 Bold'],
     marginBottom: 16,
     textAlign: 'center',
   },
   description: {
-    fontSize: 16,
+    ...Styles.fonts['P2 Regular'],
     marginBottom: 12,
     textAlign: 'center',
   },

@@ -123,7 +123,7 @@ struct WalletInformationAndMarketWidgetEntryView: View {
     }
 
     var body: some View {
-        if family == .systemLarge {
+        if family == .accessoryRectangular {
             HStack(alignment: .center, spacing: nil, content: {
                 VStack(alignment: .leading, spacing: nil, content: {
                     HStack(content: {
@@ -154,7 +154,7 @@ struct WalletInformationAndMarketWidget: Widget {
             WalletInformationAndMarketWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Wallet and Market")
-        .description("View your total wallet balance and network prices.").supportedFamilies([.systemMedium, .systemLarge])
+        .description("View your total wallet balance and network prices.").supportedFamilies([.accessoryRectangular])
         .contentMarginsDisabledIfAvailable()
     }
 }
@@ -162,8 +162,8 @@ struct WalletInformationAndMarketWidget: Widget {
 struct WalletInformationAndMarketWidget_Previews: PreviewProvider {
     static var previews: some View {
         WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
-            .previewContext(WidgetPreviewContext(family: .systemMedium))
+            .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
         WalletInformationAndMarketWidgetEntryView(entry: WalletInformationAndMarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9 134", price: "$10,000", rate: 0), allWalletsBalance: WalletData(balance: 10000, latestTransactionTime: LatestTransaction(isUnconfirmed: false, epochValue: 1568804029000))))
-            .previewContext(WidgetPreviewContext(family: .systemLarge))
+            .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
     }
 }

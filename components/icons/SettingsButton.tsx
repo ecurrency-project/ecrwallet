@@ -1,16 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Icon } from '@rneui/themed';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../themes';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc from '../../loc';
 import ToolTipMenu from '../TooltipMenu';
 import { CommonToolTipActions } from '../../typings/CommonToolTipActions';
+import ThreeDotsIcon from '../../img/icons/ThreeDotsIcon.tsx';
 
 const SettingsButton = () => {
   const { colors } = useTheme();
   const { navigate } = useExtendedNavigation();
   const onPress = () => {
+    console.log('Settings button pressed');
     navigate('Settings');
   };
 
@@ -21,6 +22,7 @@ const SettingsButton = () => {
           navigate('ManageWallets');
           break;
         default:
+          console.log('Unknown menu item:', menuItem);
           break;
       }
     },
@@ -29,16 +31,19 @@ const SettingsButton = () => {
 
   const actions = useMemo(() => [CommonToolTipActions.ManageWallet], []);
   return (
-    <ToolTipMenu onPressMenuItem={onPressMenuItem} actions={actions}>
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={loc.settings.default_title}
-        testID="SettingsButton"
-        style={[style.buttonStyle, { backgroundColor: colors.lightButton }]}
-        onPress={onPress}
-      >
-        <Icon size={22} name="more-horiz" type="material" color={colors.foregroundColor} />
-      </TouchableOpacity>
+    <ToolTipMenu
+      accessibilityRole="button"
+      accessibilityLabel={loc.settings.default_title}
+      testID="SettingsButton"
+      isButton
+      onPress={onPress}
+      buttonStyle={[style.buttonStyle, { backgroundColor: colors.lightButton }]}
+      onPressMenuItem={onPressMenuItem}
+      actions={actions}
+    >
+      <View style={style.icon}>
+        <ThreeDotsIcon color={colors.foregroundColor} />
+      </View>
     </ToolTipMenu>
   );
 };
@@ -47,10 +52,13 @@ export default SettingsButton;
 
 const style = StyleSheet.create({
   buttonStyle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 38,
+    height: 38,
+    borderRadius: 8,
     justifyContent: 'center',
     alignContent: 'center',
+  },
+  icon: {
+    alignSelf: 'center',
   },
 });

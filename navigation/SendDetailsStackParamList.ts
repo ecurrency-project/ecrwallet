@@ -1,4 +1,4 @@
-import { Psbt } from 'bitcoinjs-lib';
+import { Psbt } from '@qbtc/bitcoinjs-lib';
 import { CreateTransactionTarget, CreateTransactionUtxo, TWallet } from '../class/wallets/types';
 import { BitcoinUnit, Chain } from '../models/bitcoinUnits';
 import { ScanQRCodeParamList } from './DetailViewStackParamList';

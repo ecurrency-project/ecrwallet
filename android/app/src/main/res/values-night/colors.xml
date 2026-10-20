@@ -13,5 +13,8 @@
     <color name="alternative_text_color">#9aa0aa</color>
     <color name="ripple_color">#1Affffff</color>
     <color name="ripple_color_selected">#1A0A84FF</color>
+
+    <color name="dialog_background_color">#1B1B1F</color>
+    <color name="dialog_button_text_color">#FFFFFF</color>
 </resources>
 

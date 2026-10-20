@@ -3,7 +3,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Icon } from '@rneui/themed';
 import URL from 'url';
-import { BlueCard, BlueText } from '../../BlueComponents';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
 import Lnurl from '../../class/lnurl';
 import Button from '../../components/Button';
 import SafeArea from '../../components/SafeArea';
@@ -43,6 +43,7 @@ const LnurlAuth = () => {
       backgroundColor: colors.background,
     },
     walletWrapLabel: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
   });
@@ -155,8 +156,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   walletSelectText: {
+    ...Styles.fonts['P1 Regular'],
     color: '#9aa0aa',
-    fontSize: 14,
     marginRight: 8,
   },
   walletWrap: {
@@ -169,6 +170,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   walletWrapLabel: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
   },
 });

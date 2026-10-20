@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect, useLocale, useNavigation, useRoute } from '@react-navigation/native';
 import {
   ActivityIndicator,
-  Image,
   Keyboard,
   Platform,
   StyleSheet,
@@ -29,6 +28,8 @@ import { useStorage } from '../../hooks/context/useStorage';
 import { DismissKeyboardInputAccessory, DismissKeyboardInputAccessoryViewID } from '../../components/DismissKeyboardInputAccessory';
 import { majorTomToGroundControl, tryToObtainPermissions } from '../../blue_modules/notifications';
 import { BlueLoading } from '../../components/BlueLoading';
+import { Styles } from '../../BlueComponents';
+import ScanIcon from '../../img/icons/ScanIcon';
 
 const LNDCreateInvoice = () => {
   const { wallets, saveToDisk } = useStorage();
@@ -37,7 +38,7 @@ const LNDCreateInvoice = () => {
   const { params } = useRoute();
   const { colors } = useTheme();
   const { navigate, getParent, goBack, pop, setParams } = useNavigation();
-  const [unit, setUnit] = useState(wallet.current?.getPreferredBalanceUnit() || BitcoinUnit.BTC);
+  const [unit, setUnit] = useState(wallet.current?.getPreferredBalanceUnit() || BitcoinUnit.ECR);
   const [amount, setAmount] = useState();
   const { direction } = useLocale();
   const [renderWalletSelectionButtonHidden, setRenderWalletSelectionButtonHidden] = useState(false);
@@ -50,12 +51,15 @@ const LNDCreateInvoice = () => {
       backgroundColor: colors.scanLabel,
     },
     scanClick: {
+      ...Styles.fonts['P2 Regular'],
       color: colors.inverseForegroundColor,
     },
     walletNameText: {
+      ...Styles.fonts['P2 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
     walletNameBalance: {
+      ...Styles.fonts['P2 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
     walletNameSats: {
@@ -130,7 +134,7 @@ const LNDCreateInvoice = () => {
           case BitcoinUnit.SATS:
             // nop
             break;
-          case BitcoinUnit.BTC:
+          case BitcoinUnit.ECR:
             newAmount = satoshiToBTC(newAmount);
             break;
           case BitcoinUnit.LOCAL_CURRENCY:
@@ -235,7 +239,7 @@ const LNDCreateInvoice = () => {
         case BitcoinUnit.SATS:
           invoiceAmount = parseInt(invoiceAmount, 10); // basically nop
           break;
-        case BitcoinUnit.BTC:
+        case BitcoinUnit.ECR:
           invoiceAmount = btcToSatoshi(invoiceAmount);
           break;
         case BitcoinUnit.LOCAL_CURRENCY:
@@ -335,7 +339,7 @@ const LNDCreateInvoice = () => {
         accessibilityLabel={loc.send.details_scan}
         accessibilityHint={loc.send.details_scan_hint}
       >
-        <Image style={{}} source={require('../../img/scan-white.png')} />
+        <ScanIcon color={colors.historyIcon} />
         <Text style={[styles.scanClick, styleHooks.scanClick]}>{loc.send.details_scan}</Text>
       </TouchableOpacity>
     );
@@ -434,6 +438,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   scanClick: {
+    ...Styles.fonts['P2 Regular'],
     marginLeft: 4,
   },
   walletRoot: {
@@ -446,8 +451,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   walletChooseText: {
+    ...Styles.fonts['P1 Regular'],
     color: '#9aa0aa',
-    fontSize: 14,
     marginRight: 8,
   },
   walletNameWrap: {
@@ -460,11 +465,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   walletNameText: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
   },
   walletNameBalance: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...Styles.fonts['P1 Regular'],
     marginLeft: 8,
     marginRight: 4,
   },
@@ -497,6 +501,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     minHeight: 33,
     color: '#81868e',
+    ...Styles.fonts['P2 Regular'],
   },
 });
 

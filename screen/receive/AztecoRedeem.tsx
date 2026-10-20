@@ -3,7 +3,7 @@ import { Icon } from '@rneui/themed';
 import React, { useEffect, useState } from 'react';
 import { I18nManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { BlueText } from '../../BlueComponents';
+import { BlueText, Styles } from '../../BlueComponents';
 import Azteco from '../../class/azteco';
 import { TWallet } from '../../class/wallets/types';
 import presentAlert from '../../components/Alert';
@@ -83,6 +83,7 @@ const AztecoRedeem = () => {
       backgroundColor: colors.elevated,
     },
     text: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.foregroundColor,
     },
   });
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectText: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
     marginRight: 8,
   },
   selectWallet2: {
@@ -157,6 +158,6 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   selectWalletLabel: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
   },
 });

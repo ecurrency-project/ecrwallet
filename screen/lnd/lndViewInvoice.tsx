@@ -4,7 +4,7 @@ import { BackHandler, Image, ScrollView, StyleSheet, Text, TouchableOpacity, Vie
 import { Icon } from '@rneui/themed';
 import Share from 'react-native-share';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueText, BlueTextCentered } from '../../BlueComponents';
+import { BlueText, BlueTextCentered, Styles } from '../../BlueComponents';
 import Button from '../../components/Button';
 import CopyTextToClipboard from '../../components/CopyTextToClipboard';
 import QRCodeComponent from '../../components/QRCodeComponent';
@@ -47,6 +47,7 @@ const LNDViewInvoice = () => {
       backgroundColor: colors.background,
     },
     detailsText: {
+      ...Styles.fonts['P2 Regular'],
       color: colors.alternativeTextColor,
     },
     expired: {
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailsText: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
     marginRight: 8,
   },
   expired: {

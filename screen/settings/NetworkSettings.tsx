@@ -1,40 +1,36 @@
 import React from 'react';
-import { isNotificationsCapable } from '../../blue_modules/notifications';
-import ListItem from '../../components/ListItem';
+import { StyleSheet } from 'react-native';
 import loc from '../../loc';
-import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
+import NavigationItem from '../../components/NavigationItem.tsx';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
+import { useExtendedNavigation } from '../../hooks/useExtendedNavigation.ts';
 
 const NetworkSettings: React.FC = () => {
-  const navigation = useExtendedNavigation();
-
+  const { navigate } = useExtendedNavigation();
   const navigateToElectrumSettings = () => {
-    navigation.navigate('ElectrumSettings');
-  };
-
-  const navigateToLightningSettings = () => {
-    navigation.navigate('LightningSettings');
+    navigate('ElectrumSettings');
   };
 
   const navigateToBlockExplorerSettings = () => {
-    navigation.navigate('SettingsBlockExplorer');
+    navigate('SettingsBlockExplorer');
   };
 
   return (
-    <SafeAreaScrollView contentInsetAdjustmentBehavior="automatic" automaticallyAdjustContentInsets>
-      <ListItem title={loc.settings.block_explorer} onPress={navigateToBlockExplorerSettings} testID="BlockExplorerSettings" chevron />
-      <ListItem title={loc.settings.network_electrum} onPress={navigateToElectrumSettings} testID="ElectrumSettings" chevron />
-      <ListItem title={loc.settings.lightning_settings} onPress={navigateToLightningSettings} testID="LightningSettings" chevron />
-      {isNotificationsCapable && (
-        <ListItem
-          title={loc.settings.notifications}
-          onPress={() => navigation.navigate('NotificationSettings')}
-          testID="NotificationSettings"
-          chevron
-        />
-      )}
+    <SafeAreaScrollView style={styles.container} contentContainerStyle={styles.contentContainerStyle}>
+      <NavigationItem title={loc.settings.block_explorer} onPress={navigateToBlockExplorerSettings} />
+      <NavigationItem title={loc.settings.network_electrum} onPress={navigateToElectrumSettings} />
     </SafeAreaScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  contentContainerStyle: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  container: {
+    paddingVertical: 16,
+  },
+});
 
 export default NetworkSettings;

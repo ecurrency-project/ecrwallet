@@ -1,13 +1,11 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useReducer, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useReducer, useMemo } from 'react';
 import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import { ActivityIndicator, FlatList, StyleSheet, View, Platform, UIManager } from 'react-native';
 import { WatchOnlyWallet } from '../../class';
 import { AddressItem } from '../../components/addresses/AddressItem';
 import { useTheme } from '../../components/themes';
 import { useStorage } from '../../hooks/context/useStorage';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
-import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import SegmentedControl from '../../components/SegmentControl';
 import loc from '../../loc';
 import { BitcoinUnit } from '../../models/bitcoinUnits';
@@ -113,7 +111,6 @@ export const filterByAddressType = (
   return currentType === type ? isInternal === true : isInternal === false;
 };
 
-type NavigationProps = NativeStackNavigationProp<DetailViewStackParamList, 'WalletAddresses'>;
 type RouteProps = RouteProp<DetailViewStackParamList, 'WalletAddresses'>;
 
 const WalletAddresses: React.FC = () => {
@@ -125,7 +122,7 @@ const WalletAddresses: React.FC = () => {
   const addressList = useRef<FlatList<Address>>(null);
   const wallet = wallets.find((w: any) => w.getID() === walletID);
 
-  const balanceUnit = wallet?.getPreferredBalanceUnit() ?? BitcoinUnit.BTC;
+  const balanceUnit = wallet?.getPreferredBalanceUnit() ?? BitcoinUnit.ECR;
   const isWatchOnly = wallet?.type === WatchOnlyWallet.type;
   const walletInstance = isWatchOnly ? wallet._hdWalletInstance : wallet;
   const allowSignVerifyMessage = (wallet && 'allowSignVerifyMessage' in wallet && wallet.allowSignVerifyMessage()) ?? false;
@@ -133,7 +130,6 @@ const WalletAddresses: React.FC = () => {
   const { colors } = useTheme();
   const { isPrivacyBlurEnabled } = useSettings();
   const { enableScreenProtect, disableScreenProtect } = useScreenProtect();
-  const { setOptions } = useExtendedNavigation<NavigationProps>();
 
   const stylesHook = StyleSheet.create({
     root: {
@@ -190,14 +186,6 @@ const WalletAddresses: React.FC = () => {
     }
   }, [showAddresses]);
 
-  useLayoutEffect(() => {
-    setOptions({
-      headerSearchBarOptions: {
-        onChangeText: (event: { nativeEvent: { text: string } }) => dispatch({ type: SET_SEARCH, payload: event.nativeEvent.text }),
-      },
-    });
-  }, [setOptions]);
-
   const data =
     search.length > 0 ? filteredAddresses.filter(item => item.address.toLowerCase().includes(search.toLowerCase())) : filteredAddresses;
 
@@ -206,7 +194,14 @@ const WalletAddresses: React.FC = () => {
   const renderRow = useCallback(
     ({ item }: { item: Address }) => {
       return (
-        <AddressItem item={item} {...item} balanceUnit={balanceUnit} walletID={walletID} allowSignVerifyMessage={allowSignVerifyMessage} />
+        <AddressItem
+          item={item}
+          {...item}
+          key={item.address}
+          balanceUnit={balanceUnit}
+          walletID={walletID}
+          allowSignVerifyMessage={allowSignVerifyMessage}
+        />
       );
     },
     [balanceUnit, walletID, allowSignVerifyMessage],
@@ -226,16 +221,11 @@ const WalletAddresses: React.FC = () => {
       ref={addressList}
       data={data}
       extraData={data}
-      style={styles.root}
+      style={[styles.root, stylesHook.root]}
       keyExtractor={keyExtractor}
       initialNumToRender={20}
       renderItem={renderRow}
       ListEmptyComponent={search.length > 0 ? null : <ActivityIndicator />}
-      centerContent={!showAddresses}
-      contentInsetAdjustmentBehavior="automatic"
-      automaticallyAdjustContentInsets
-      automaticallyAdjustsScrollIndicatorInsets
-      automaticallyAdjustKeyboardInsets
       ListHeaderComponent={
         <SegmentedControl
           values={Object.values(TABS).map(tab => loc.addresses[`type_${tab}`])}

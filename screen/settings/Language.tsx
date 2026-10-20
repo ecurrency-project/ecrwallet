@@ -1,40 +1,24 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 import presentAlert from '../../components/Alert';
 import ListItem from '../../components/ListItem';
 import { useTheme } from '../../components/themes';
-import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc from '../../loc';
 import { AvailableLanguages, TLanguage } from '../../loc/languages';
 import { useSettings } from '../../hooks/context/useSettings';
 import SafeAreaFlatList from '../../components/SafeAreaFlatList';
-import { Keyboard, NativeSyntheticEvent, StyleSheet } from 'react-native';
+import ItemSeparatorComponent from '../../components/ItemSeparatorComponent';
 
 const Language = () => {
   const { setLanguageStorage, language } = useSettings();
-  const { setOptions } = useExtendedNavigation();
   const { colors } = useTheme();
-  const [search, setSearch] = useState('');
   const stylesHook = StyleSheet.create({
     content: {
       backgroundColor: colors.background,
     },
   });
 
-  useLayoutEffect(() => {
-    setOptions({
-      headerSearchBarOptions: {
-        onChangeText: (event: NativeSyntheticEvent<{ text: string }>) => setSearch(event.nativeEvent.text),
-      },
-    });
-  }, [setOptions]);
-
-  useEffect(() => {
-    setOptions({ title: loc.settings.language });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
-
   const onLanguageSelect = (item: TLanguage) => {
-    Keyboard.dismiss();
     const currentLanguage = AvailableLanguages.find(l => l.value === language);
     setLanguageStorage(item.value).then(() => {
       if (currentLanguage?.isRTL !== item.isRTL) {
@@ -46,7 +30,6 @@ const Language = () => {
   const renderItem = ({ item }: { item: TLanguage }) => {
     return (
       <ListItem
-        disabled={language === item.value}
         title={item.label}
         checkmark={language === item.value}
         onPress={() => onLanguageSelect(item)}
@@ -60,11 +43,12 @@ const Language = () => {
       style={styles.flex}
       contentContainerStyle={stylesHook.content}
       keyExtractor={(_item, index) => `${index}`}
-      data={AvailableLanguages.filter(l => l.label.toLowerCase().includes(search.toLowerCase()))}
+      data={AvailableLanguages.filter(l => l.label.toLowerCase())}
       renderItem={renderItem}
       initialNumToRender={25}
       contentInsetAdjustmentBehavior="automatic"
       automaticallyAdjustContentInsets
+      ItemSeparatorComponent={ItemSeparatorComponent}
     />
   );
 };
@@ -74,6 +58,10 @@ export default Language;
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+    paddingHorizontal: 16,
   },
-  row: { minHeight: 60 },
+  row: {
+    minHeight: 60,
+    borderBottomWidth: 0,
+  },
 });

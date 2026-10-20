@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Keyboard, Platform, StyleSheet, TouchableWithoutFeedback, View, TouchableOpacity, Image } from 'react-native';
-import { BlueFormLabel, BlueFormMultiInput } from '../../BlueComponents';
+import { Keyboard, Platform, StyleSheet, TouchableWithoutFeedback, View, TouchableOpacity, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlueFormLabel, BlueFormMultiInput, BlueText, Styles } from '../../BlueComponents';
 import Button from '../../components/Button';
 import {
   DoneAndDismissKeyboardInputAccessory,
@@ -21,13 +22,14 @@ import { AddressInputScanButton } from '../../components/AddressInputScanButton'
 import { useScreenProtect } from '../../hooks/useScreenProtect';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
+import CrossIcon from '../../img/icons/CrossIcon.tsx';
 
 type RouteProps = RouteProp<AddWalletStackParamList, 'ImportWallet'>;
 type NavigationProps = NativeStackNavigationProp<AddWalletStackParamList, 'ImportWallet'>;
 
 const ImportWallet = () => {
   const navigation = useExtendedNavigation<NavigationProps>();
-  const { colors, closeImage } = useTheme();
+  const { colors } = useTheme();
   const route = useRoute<RouteProps>();
   const label = route?.params?.label ?? '';
   const triggerImport = route?.params?.triggerImport ?? false;
@@ -39,19 +41,13 @@ const ImportWallet = () => {
   const [clearClipboardMenuState, setClearClipboardMenuState] = useState<boolean>(true);
   const { isPrivacyBlurEnabled } = useSettings();
   const { enableScreenProtect, disableScreenProtect } = useScreenProtect();
-  const styles = StyleSheet.create({
-    root: {
-      paddingTop: 10,
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+
+  const styleHook = StyleSheet.create({
+    header: {
       backgroundColor: colors.elevated,
-      flex: 1,
-    },
-    center: {
-      flex: 1,
-      marginHorizontal: 16,
-      backgroundColor: colors.elevated,
-    },
-    button: {
-      padding: 10,
+      paddingTop: Platform.select({ ios: 16, android: insets.top + 8 }),
     },
   });
 
@@ -152,9 +148,24 @@ const ImportWallet = () => {
     ];
   }, [askPassphraseMenuState, clearClipboardMenuState, searchAccountsMenuState]);
 
-  const HeaderRight = useMemo(
-    () => <HeaderMenuButton onPressMenuItem={toolTipOnPressMenuItem} actions={toolTipActions} />,
-    [toolTipOnPressMenuItem, toolTipActions],
+  const Header = useMemo(
+    () => (
+      <View style={[styles.headerContainer, styleHook.header]}>
+        <TouchableOpacity
+          testID="NavigationCloseButton"
+          accessibilityRole="button"
+          style={[styles.buttonCross, { backgroundColor: colors.lightButton }]}
+          onPress={navigation.goBack}
+        >
+          <View style={styles.iconContainer}>
+            <CrossIcon color={colors.foregroundColor} size={28} />
+          </View>
+        </TouchableOpacity>
+        <BlueText style={styles.title}>{loc.wallets.import_title}</BlueText>
+        <HeaderMenuButton onPressMenuItem={toolTipOnPressMenuItem} actions={toolTipActions} />
+      </View>
+    ),
+    [styleHook.header, colors.lightButton, colors.foregroundColor, navigation.goBack, toolTipOnPressMenuItem, toolTipActions],
   );
 
   useEffect(() => {
@@ -170,31 +181,17 @@ const ImportWallet = () => {
     if (triggerImport) handleImport();
   }, [triggerImport, handleImport]);
 
-  // Adding the ToolTipMenu to the header
   useEffect(() => {
     navigation.setOptions({
-      headerRight: () => HeaderRight,
-      headerLeft:
-        navigation.getState().index === 0
-          ? () => (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={loc._.close}
-                style={styles.button}
-                onPress={() => navigation.goBack()}
-                testID="NavigationCloseButton"
-              >
-                <Image source={closeImage} />
-              </TouchableOpacity>
-            )
-          : undefined,
+      header: () => Header,
+      statusBarStyle: Platform.select({ ios: 'light', default: colorScheme === 'dark' ? 'light' : 'dark' }),
     });
-  }, [colors, navigation, toolTipActions, HeaderRight, styles.button, closeImage]);
+  }, [Header, navigation, colorScheme]);
 
   const renderOptionsAndImportButton = (
     <>
       <BlueSpacing20 />
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.elevated }]}>
         <>
           <Button disabled={importText.trim().length === 0} title={loc.wallets.import_do_import} testID="DoImport" onPress={handleImport} />
           <BlueSpacing20 />
@@ -205,7 +202,11 @@ const ImportWallet = () => {
   );
 
   return (
-    <SafeAreaScrollView contentContainerStyle={styles.root} keyboardShouldPersistTaps="always" automaticallyAdjustKeyboardInsets>
+    <SafeAreaScrollView
+      contentContainerStyle={[styles.root, { backgroundColor: colors.elevated }]}
+      keyboardShouldPersistTaps="always"
+      automaticallyAdjustKeyboardInsets
+    >
       <BlueSpacing20 />
       <TouchableWithoutFeedback accessibilityRole="button" onPress={speedBackdoorTap} testID="SpeedBackdoor">
         <BlueFormLabel>{loc.wallets.import_explanation}</BlueFormLabel>
@@ -237,5 +238,36 @@ const ImportWallet = () => {
     </SafeAreaScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    paddingTop: 10,
+    flex: 1,
+  },
+  center: {
+    flex: 1,
+    marginHorizontal: 16,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  buttonCross: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  iconContainer: {
+    alignSelf: 'center',
+  },
+  title: {
+    ...Styles.fonts['P3 Bold'],
+  },
+});
 
 export default ImportWallet;

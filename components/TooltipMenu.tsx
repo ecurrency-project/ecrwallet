@@ -105,8 +105,16 @@ const ToolTipMenu = (props: ToolTipMenuProps) => {
     [onPressMenuItem],
   );
 
+  // The tap target has to sit on a different side of MenuView per platform:
+  // - iOS: MenuView is a UIButton, and it swallows touches meant for nested RN views,
+  //   so a TouchableOpacity inside it never fires onPress. It has to wrap MenuView.
+  // - Android: MenuView opens its PopupMenu from a GestureDetector, and a JS responder
+  //   above it claims the gesture first, so the long press never reaches the menu.
+  //   The TouchableOpacity has to live inside.
+  const wrapsButtonOutside = isButton && !isMenuPrimaryAction && Platform.OS === 'ios';
+
   const renderMenuView = () => {
-    return (
+    const menuView = (
       <MenuView
         title={title}
         isAnchoredToRight
@@ -119,14 +127,30 @@ const ToolTipMenu = (props: ToolTipMenuProps) => {
         accessibilityRole={props.accessibilityRole}
         accessibilityLanguage={language}
       >
-        {isMenuPrimaryAction || isButton ? (
-          <TouchableOpacity style={buttonStyle} disabled={disabled} onPress={onPress} {...restProps}>
+        {(isMenuPrimaryAction || isButton) && !wrapsButtonOutside ? (
+          <TouchableOpacity
+            style={buttonStyle}
+            disabled={disabled}
+            onPress={onPress}
+            // Keeps Pressability from firing onPress on release of the long press
+            // that just opened the native menu.
+            onLongPress={isMenuPrimaryAction ? undefined : () => {}}
+            {...restProps}
+          >
             {children}
           </TouchableOpacity>
         ) : (
           children
         )}
       </MenuView>
+    );
+
+    if (!wrapsButtonOutside) return menuView;
+
+    return (
+      <TouchableOpacity style={buttonStyle} disabled={disabled} onPress={onPress} onLongPress={() => {}} activeOpacity={0.6} {...restProps}>
+        {menuView}
+      </TouchableOpacity>
     );
   };
 

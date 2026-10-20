@@ -9,9 +9,9 @@ class WidgetHelper {
         }
         #endif
     }
-    
+
     static func getSharedUserDefaults() -> UserDefaults? {
-        let suiteName = "group.io.bluewallet.bluewallet"
+        let suiteName = "group.ecurrency.org.ecrwallet"
         let defaults = UserDefaults(suiteName: suiteName)
         if defaults == nil {
             NSLog("[WidgetHelper] Warning: Could not access shared UserDefaults")

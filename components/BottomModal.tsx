@@ -1,20 +1,60 @@
 import React, { forwardRef, useImperativeHandle, useRef, ReactElement, ComponentType } from 'react';
-import { SheetSize, SizeChangeEvent, TrueSheet, TrueSheetProps } from '@lodev09/react-native-true-sheet';
-import { Keyboard, Image, StyleSheet, View, Pressable, Platform, GestureResponderEvent, Text } from 'react-native';
+import { DetentChangeEvent, SheetDetent, TrueSheet, TrueSheetProps } from '@lodev09/react-native-true-sheet';
+import {
+  Keyboard,
+  StyleProp,
+  StyleSheet,
+  View,
+  Pressable,
+  Platform,
+  GestureResponderEvent,
+  Text,
+  ViewStyle,
+  useWindowDimensions,
+} from 'react-native';
 import SaveFileButton from './SaveFileButton';
 import { useTheme } from './themes';
 import { Icon } from '@rneui/base';
+import CrossIcon from '../img/icons/CrossIcon.tsx';
 
-interface BottomModalProps extends TrueSheetProps {
+/**
+ * The sheet size vocabulary of true-sheet 2.x, kept so call sites don't have to change.
+ * true-sheet 3.x only understands `'auto' | 'peek' | fraction`, see `toDetent`.
+ */
+type SheetSize = 'auto' | 'small' | 'medium' | 'large' | number | `${number}%`;
+
+const toDetent = (size: SheetSize, windowHeight: number): SheetDetent => {
+  switch (size) {
+    case 'auto':
+      return 'auto';
+    case 'small':
+      return 0.25;
+    case 'medium':
+      return 0.5;
+    case 'large':
+      return 1;
+  }
+
+  if (typeof size === 'string') {
+    const percent = parseFloat(size);
+    return Number.isFinite(percent) ? percent / 100 : 'auto';
+  }
+
+  // 2.x accepted a fixed height in points; 3.x only takes a fraction of the available height.
+  return size > 1 ? size / windowHeight : size;
+};
+
+interface BottomModalProps extends Omit<TrueSheetProps, 'footer' | 'header'> {
   children?: React.ReactNode;
   onClose?: () => void;
   onCloseModalPressed?: () => Promise<void>;
   isGrabberVisible?: boolean;
   sizes?: SheetSize[] | undefined;
+  contentContainerStyle?: StyleProp<ViewStyle>;
   footer?: ReactElement | ComponentType<any> | null;
   footerDefaultMargins?: boolean | number;
   onPresent?: () => void;
-  onSizeChange?: (event: SizeChangeEvent) => void;
+  onSizeChange?: (event: DetentChangeEvent) => void;
   showCloseButton?: boolean;
   shareContent?: BottomModalShareContent;
   shareButtonOnPress?: (event: GestureResponderEvent) => void;
@@ -45,6 +85,7 @@ const BottomModal = forwardRef<BottomModalHandle, BottomModalProps>(
       shareContent,
       shareButtonOnPress,
       sizes = ['auto'],
+      contentContainerStyle,
       footer,
       footerDefaultMargins,
       header,
@@ -56,7 +97,8 @@ const BottomModal = forwardRef<BottomModalHandle, BottomModalProps>(
     ref,
   ) => {
     const trueSheetRef = useRef<TrueSheet>(null);
-    const { colors, closeImage } = useTheme();
+    const { height: windowHeight } = useWindowDimensions();
+    const { colors } = useTheme();
     const stylesHook = StyleSheet.create({
       barButton: {
         backgroundColor: colors.lightButton,
@@ -140,7 +182,7 @@ const BottomModal = forwardRef<BottomModalHandle, BottomModalProps>(
             key="ModalDoneButton"
             testID="ModalDoneButton"
           >
-            <Image source={closeImage} />
+            <CrossIcon color={colors.foregroundColor} size={24} />
           </Pressable>,
         );
       }
@@ -194,14 +236,15 @@ const BottomModal = forwardRef<BottomModalHandle, BottomModalProps>(
 
     return (
       <TrueSheet
-        ref={trueSheetRef}
-        sizes={sizes}
-        onDismiss={onClose}
-        onPresent={onPresent}
-        onSizeChange={onSizeChange}
-        grabber={isGrabberVisible}
-        FooterComponent={FooterComponent as ReactElement}
         {...props}
+        ref={trueSheetRef}
+        detents={sizes.map(size => toDetent(size, windowHeight))}
+        style={contentContainerStyle}
+        onDidDismiss={onClose}
+        onDidPresent={onPresent}
+        onDetentChange={onSizeChange}
+        grabber={isGrabberVisible}
+        footer={FooterComponent}
       >
         <View style={styles.childrenContainer}>{children}</View>
         {renderHeader()}
@@ -252,10 +295,10 @@ const styles = StyleSheet.create({
   topRightButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 38,
+    height: 38,
     marginLeft: 22,
+    borderRadius: 8,
   },
   topRightButtonContainer: {
     flexDirection: 'row',

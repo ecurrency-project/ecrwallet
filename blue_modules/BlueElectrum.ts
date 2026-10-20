@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import DefaultPreference from 'react-native-default-preference';
 import RNFS from 'react-native-fs';
 import Realm from 'realm';
@@ -9,10 +9,14 @@ import { LegacyWallet, SegwitBech32Wallet, SegwitP2SHWallet, TaprootWallet } fro
 import presentAlert from '../components/Alert';
 import loc from '../loc';
 import { GROUP_IO_BLUEWALLET } from './currency';
-import { ElectrumServerItem } from '../screen/settings/ElectrumSettings';
 import { triggerWarningHapticFeedback } from './hapticFeedback';
 import { AlertButton } from 'react-native';
 import { uint8ArrayToHex } from './uint8array-extras/index';
+import { network } from '../models/ecurrencyNetwork.ts';
+import { normalizeECurrencyTransaction } from './ecurrency-transaction';
+import type { ECRTransaction } from './ecurrency-transaction';
+
+export type { ECRTransaction } from './ecurrency-transaction';
 
 const ElectrumClient = require('electrum-client');
 const net = require('net');
@@ -27,7 +31,7 @@ type Utxo = {
   wif?: string;
 };
 
-type ElectrumTransaction = {
+export type ElectrumTransaction = {
   txid: string;
   hash: string;
   version: number;
@@ -83,15 +87,15 @@ export const ELECTRUM_SSL_PORT = 'electrum_ssl_port';
 export const ELECTRUM_SERVER_HISTORY = 'electrum_server_history';
 const ELECTRUM_CONNECTION_DISABLED = 'electrum_disabled';
 const storageKey = 'ELECTRUM_PEERS';
-const defaultPeer = { host: 'electrum1.bluewallet.io', ssl: 443 };
-export const hardcodedPeers: Peer[] = [
-  { host: 'mainnet.foundationdevices.com', ssl: 50002 },
-  // { host: 'bitcoin.lukechilds.co', ssl: 50002 },
-  // { host: 'electrum.jochen-hoenicke.de', ssl: '50006' },
-  { host: 'electrum1.bluewallet.io', ssl: 443 },
-  { host: 'electrum.acinq.co', ssl: 50002 },
-  { host: 'electrum.bitaroo.net', ssl: 50002 },
+
+/** ECurrency Electrum servers. */
+export const ecurrencyHardcodedPeers: Peer[] = [
+  { host: 'electrum.ecurrency.org', ssl: 443 },
 ];
+
+export const hardcodedPeers: Peer[] = [...ecurrencyHardcodedPeers];
+
+const defaultPeer = hardcodedPeers[0];
 
 export const suggestedServers: Peer[] = hardcodedPeers.map(peer => ({
   ...peer,
@@ -142,31 +146,6 @@ async function _getRealm() {
 
   return _realm;
 }
-
-export const getPreferredServer = async (): Promise<ElectrumServerItem | undefined> => {
-  try {
-    await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
-    const host = (await DefaultPreference.get(ELECTRUM_HOST)) as string;
-    const tcpPort = await DefaultPreference.get(ELECTRUM_TCP_PORT);
-    const sslPort = await DefaultPreference.get(ELECTRUM_SSL_PORT);
-
-    console.log('Getting preferred server:', { host, tcpPort, sslPort });
-
-    if (!host) {
-      console.warn('Preferred server host is undefined');
-      return;
-    }
-
-    return {
-      host,
-      tcp: tcpPort ? Number(tcpPort) : undefined,
-      ssl: sslPort ? Number(sslPort) : undefined,
-    };
-  } catch (error) {
-    console.error('Error in getPreferredServer:', error);
-    return undefined;
-  }
-};
 
 export const removePreferredServer = async () => {
   try {
@@ -338,31 +317,12 @@ export async function connectMain(): Promise<void> {
 }
 
 export async function presentResetToDefaultsAlert(): Promise<boolean> {
-  const hasPreferredServer = await getPreferredServer();
   const serverHistoryStr = await DefaultPreference.get(ELECTRUM_SERVER_HISTORY);
   const serverHistory = typeof serverHistoryStr === 'string' ? JSON.parse(serverHistoryStr) : [];
   return new Promise(resolve => {
     triggerWarningHapticFeedback();
 
     const buttons: AlertButton[] = [];
-
-    if (hasPreferredServer?.host && (hasPreferredServer.tcp || hasPreferredServer.ssl)) {
-      buttons.push({
-        text: loc.settings.electrum_reset,
-        onPress: async () => {
-          try {
-            await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
-            await DefaultPreference.clear(ELECTRUM_HOST);
-            await DefaultPreference.clear(ELECTRUM_SSL_PORT);
-            await DefaultPreference.clear(ELECTRUM_TCP_PORT);
-          } catch (e) {
-            console.log(e); // Must be running on Android
-          }
-          resolve(true);
-        },
-        style: 'default',
-      });
-    }
 
     if (serverHistory.length > 0) {
       buttons.push({
@@ -490,10 +450,10 @@ async function getRandomDynamicPeer(): Promise<Peer> {
 export const getBalanceByAddress = async function (address: string): Promise<{ confirmed: number; unconfirmed: number }> {
   try {
     if (!mainClient) throw new Error('Electrum client is not connected');
-    const script = bitcoin.address.toOutputScript(address);
-    const hash = bitcoinjs_crypto_sha256(script);
-    const reversedHash = Buffer.from(hash).reverse();
-    const balance = await mainClient.blockchainScripthash_getBalance(reversedHash.toString('hex'));
+    const scriptHash = Buffer.from(bitcoin.qbitcoinAddress.toScriptHash(address, network));
+
+    const balance = await mainClient.blockchainScripthash_getBalance(scriptHash.toString('hex'));
+
     balance.addr = address;
     return balance;
   } catch (error) {
@@ -518,10 +478,14 @@ export const getSecondsSinceLastRequest = function () {
 
 export const getTransactionsByAddress = async function (address: string): Promise<ElectrumHistory[]> {
   if (!mainClient) throw new Error('Electrum client is not connected');
-  const script = bitcoin.address.toOutputScript(address);
-  const hash = bitcoinjs_crypto_sha256(script);
-  const reversedHash = Buffer.from(hash).reverse();
-  const history = await mainClient.blockchainScripthash_getHistory(reversedHash.toString('hex'));
+  // const script = bitcoin.ecurrencyNetworks.toOutputScript(address);
+
+  const scriptHash = Buffer.from(bitcoin.qbitcoinAddress.toScriptHash(address, network)).toString('hex');
+
+  // const hash = bitcoinjs_crypto_sha256(script);
+  // const reversedHash = Buffer.from(hash).reverse();
+  // const history = await mainClient.blockchainScripthash_getHistory(reversedHash.toString('hex'));
+  const history = await mainClient.blockchainScripthash_getHistory(scriptHash);
   for (const h of history || []) {
     if (h.tx_hash) txhashHeightCache[h.tx_hash] = h.height; // cache tx height
   }
@@ -529,12 +493,45 @@ export const getTransactionsByAddress = async function (address: string): Promis
   return history;
 };
 
+/**
+ * Convert a raw output script Buffer to an Electrum script hash (hex string).
+ * Electrum script hash = SHA256(script) reversed.
+ * Use this for ECurrency P2PK scripts that cannot be derived from the address alone.
+ */
+export function scriptToScriptHash(script: Buffer | Uint8Array): string {
+  const hash = bitcoinjs_crypto_sha256(Buffer.from(script));
+  return Buffer.from(hash).reverse().toString('hex');
+}
+
+/** Get transaction history by a precomputed Electrum script hash. */
+export const getTransactionsByScriptHash = async function (scriptHash: string): Promise<ElectrumHistory[]> {
+  if (!mainClient) throw new Error('Electrum client is not connected');
+  const history = await mainClient.blockchainScripthash_getHistory(scriptHash);
+
+  for (const h of history || []) {
+    if (h.tx_hash) txhashHeightCache[h.tx_hash] = h.height;
+  }
+  return history;
+};
+
+/** Get balance by a precomputed Electrum script hash. */
+export const getBalanceByScriptHash = async function (scriptHash: string): Promise<{ confirmed: number; unconfirmed: number }> {
+  if (!mainClient) throw new Error('Electrum client is not connected');
+  return mainClient.blockchainScripthash_getBalance(scriptHash);
+};
+
+/** Get UTXOs by a precomputed Electrum script hash. */
+export const getUtxoByScriptHash = async function (scriptHash: string): Promise<any[]> {
+  if (!mainClient) throw new Error('Electrum client is not connected');
+  return mainClient.blockchainScripthash_listunspent(scriptHash);
+};
+
 export const getMempoolTransactionsByAddress = async function (address: string): Promise<MempoolTransaction[]> {
   if (!mainClient) throw new Error('Electrum client is not connected');
-  const script = bitcoin.address.toOutputScript(address);
-  const hash = bitcoinjs_crypto_sha256(script);
-  const reversedHash = Buffer.from(hash).reverse();
-  return mainClient.blockchainScripthash_getMempool(reversedHash.toString('hex'));
+  // ECR: scripthash = hash160(P2PK_script) encoded in the address, NOT the standard
+  // SHA256(toOutputScript).reverse() (which throws "has no matching Script" for ECR P2PK).
+  const scriptHash = Buffer.from(bitcoin.qbitcoinAddress.toScriptHash(address, network)).toString('hex');
+  return mainClient.blockchainScripthash_getMempool(scriptHash);
 };
 
 export const ping = async function () {
@@ -717,11 +714,11 @@ export const multiGetBalanceByAddress = async (addresses: string[], batchsize: n
     const scripthashes = [];
     const scripthash2addr: Record<string, string> = {};
     for (const addr of chunk) {
-      const script = bitcoin.address.toOutputScript(addr);
-      const hash = bitcoinjs_crypto_sha256(script);
-      const reversedHash = Buffer.from(hash).reverse().toString('hex');
-      scripthashes.push(reversedHash);
-      scripthash2addr[reversedHash] = addr;
+      // ECR: scripthash = hash160(P2PK_script) encoded in the address, NOT the standard SHA256(script).reverse().
+      // Must match getBalanceByScriptHash / multiGetHistoryByScriptHashMap, otherwise the server returns 0.
+      const scriptHash = Buffer.from(bitcoin.qbitcoinAddress.toScriptHash(addr, network)).toString('hex');
+      scripthashes.push(scriptHash);
+      scripthash2addr[scriptHash] = addr;
     }
 
     let balances = [];
@@ -761,11 +758,11 @@ export const multiGetUtxoByAddress = async function (addresses: string[], batchs
     const scripthashes = [];
     const scripthash2addr: Record<string, string> = {};
     for (const addr of chunk) {
-      const script = bitcoin.address.toOutputScript(addr);
-      const hash = bitcoinjs_crypto_sha256(script);
-      const reversedHash = Buffer.from(hash).reverse().toString('hex');
-      scripthashes.push(reversedHash);
-      scripthash2addr[reversedHash] = addr;
+      // ECR: scripthash = hash160(P2PK_script) encoded in the address, NOT the standard SHA256(script).reverse().
+      // Must match getBalanceByScriptHash / multiGetHistoryByScriptHashMap, otherwise the server returns 0.
+      const scriptHash = Buffer.from(bitcoin.qbitcoinAddress.toScriptHash(addr, network)).toString('hex');
+      scripthashes.push(scriptHash);
+      scripthash2addr[scriptHash] = addr;
     }
 
     let results = [];
@@ -807,15 +804,15 @@ export const multiGetHistoryByAddress = async function (
   const ret: Record<string, ElectrumHistory[]> = {};
 
   const chunks = splitIntoChunks(addresses, batchsize);
+
   for (const chunk of chunks) {
     const scripthashes = [];
     const scripthash2addr: Record<string, string> = {};
     for (const addr of chunk) {
-      const script = bitcoin.address.toOutputScript(addr);
-      const hash = bitcoinjs_crypto_sha256(script);
-      const reversedHash = Buffer.from(hash).reverse().toString('hex');
-      scripthashes.push(reversedHash);
-      scripthash2addr[reversedHash] = addr;
+      const scriptHash = Buffer.from(bitcoin.qbitcoinAddress.toScriptHash(addr, network)).toString('hex');
+
+      scripthashes.push(scriptHash);
+      scripthash2addr[scriptHash] = addr;
     }
 
     let results = [];
@@ -836,7 +833,7 @@ export const multiGetHistoryByAddress = async function (
     }
 
     for (const history of results) {
-      if (history.error) console.warn('multiGetHistoryByAddress():', history.error);
+      if (history.error) console.warn('[multiGetHistoryByAddress] error:', history.error);
       ret[scripthash2addr[history.param]] = history.result || [];
       for (const result of history.result || []) {
         if (result.tx_hash) txhashHeightCache[result.tx_hash] = result.height; // cache tx height
@@ -851,8 +848,60 @@ export const multiGetHistoryByAddress = async function (
   return ret;
 };
 
+/**
+ * Like multiGetHistoryByAddress but accepts precomputed Electrum script hashes.
+ * Use when bitcoin.address.toOutputScript() cannot produce the output script
+ * (e.g. ECurrency P2PK addresses where the script requires the pubkey).
+ *
+ * @param scriptHashToAddr - map of { scriptHash: address }
+ * @returns same shape as multiGetHistoryByAddress: { address: ElectrumHistory[] }
+ */
+export const multiGetHistoryByScriptHashMap = async function (
+  scriptHashToAddr: Record<string, string>,
+  batchsize: number = 100,
+): Promise<Record<string, ElectrumHistory[]>> {
+  if (!mainClient) throw new Error('Electrum client is not connected');
+  const ret: Record<string, ElectrumHistory[]> = {};
+
+  const scriptHashes = Object.keys(scriptHashToAddr);
+  const chunks = splitIntoChunks(scriptHashes, batchsize);
+
+  for (const chunk of chunks) {
+    let results = [];
+
+    if (disableBatching) {
+      const promises = [];
+      const index2scripthash: Record<number, string> = {};
+      for (let i = 0; i < chunk.length; i++) {
+        index2scripthash[i] = chunk[i];
+        promises.push(mainClient.blockchainScripthash_getHistory(chunk[i]));
+      }
+      const histories = await Promise.all(promises);
+      for (let i = 0; i < histories.length; i++) {
+        results.push({ result: histories[i], param: index2scripthash[i] });
+      }
+    } else {
+      results = await mainClient.blockchainScripthash_getHistoryBatch(chunk);
+    }
+
+    for (const history of results) {
+      if (history.error) console.warn('multiGetHistoryByScriptHashMap():', history.error);
+      const addr = scriptHashToAddr[history.param];
+      ret[addr] = history.result || [];
+      for (const result of history.result || []) {
+        if (result.tx_hash) txhashHeightCache[result.tx_hash] = result.height;
+      }
+      for (const hist of ret[addr] || []) {
+        hist.address = addr;
+      }
+    }
+  }
+
+  return ret;
+};
+
 // if verbose === true ? Record<string, ElectrumTransaction> : Record<string, string>
-type MultiGetTransactionByTxidResult<T extends boolean> = T extends true ? Record<string, ElectrumTransaction> : Record<string, string>;
+type MultiGetTransactionByTxidResult<T extends boolean> = T extends true ? Record<string, ECRTransaction> : Record<string, string>;
 
 // TODO: this function returns different results based on the value of `verboseParam`, consider splitting it into two
 export async function multiGetTransactionByTxid<T extends boolean>(
@@ -875,7 +924,8 @@ export async function multiGetTransactionByTxid<T extends boolean>(
     const jsonString = realm.objectForPrimaryKey('Cache', txid + cacheKeySuffix); // search for a realm object with a primary key
     if (jsonString && jsonString.cache_value) {
       try {
-        ret[txid] = JSON.parse(jsonString.cache_value as string);
+        const cached = JSON.parse(jsonString.cache_value as string);
+        ret[txid] = verbose ? normalizeECurrencyTransaction(cached) : cached;
       } catch (error) {
         console.log(error, 'cache failed to parse', jsonString.cache_value);
       }
@@ -960,19 +1010,9 @@ export async function multiGetTransactionByTxid<T extends boolean>(
         // since we used VERBOSE=false, server sent us plain txhex which we must decode on our end:
         txdata.result = txhexToElectrumTransaction(txdata.result);
       }
-      ret[txdata.param] = txdata.result;
+      ret[txdata.param] = verbose ? normalizeECurrencyTransaction(txdata.result) : txdata.result;
       // @ts-ignore: hex property
       if (ret[txdata.param]) delete ret[txdata.param].hex; // compact
-    }
-  }
-
-  // in bitcoin core 22.0.0+ they removed `.addresses` and replaced it with plain `.address`:
-  for (const txid of Object.keys(ret)) {
-    const tx = ret[txid];
-    if (typeof tx === 'string') continue;
-    for (const vout of tx?.vout ?? []) {
-      // @ts-ignore: address is not in type definition
-      if (vout?.scriptPubKey?.address) vout.scriptPubKey.addresses = [vout.scriptPubKey.address];
     }
   }
 
@@ -1095,6 +1135,10 @@ export const estimateFees = async function (): Promise<{ fast: number; medium: n
       mainClient.mempool_getFeeHistogram(),
       new Promise(resolve => (timeoutId = setTimeout(resolve, 15000))),
     ]);
+  } catch (_) {
+    // ECR Electrum server (ECurrency) doesn't implement mempool.get_fee_histogram —
+    // ignore the failure and fall back to blockchain.estimatefee values below.
+    histogram = undefined;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -1109,7 +1153,7 @@ export const estimateFees = async function (): Promise<{ fast: number; medium: n
    * @see https://github.com/cculianu/Fulcrum/issues/197
    * (fallback to bitcoin core estimates)
    */
-  if (!histogram || histogram?.[0]?.[0] > 1000) return { fast: _fast, medium: _medium, slow: _slow };
+  if (!histogram || !histogram.length || histogram?.[0]?.[0] > 1000) return { fast: _fast, medium: _medium, slow: _slow };
 
   // calculating fast fees from mempool:
   const fast = Math.max(2, calcEstimateFeeFromFeeHistorgam(1, histogram));
@@ -1131,7 +1175,10 @@ export const estimateFee = async function (numberOfBlocks: number): Promise<numb
   numberOfBlocks = numberOfBlocks || 1;
   const coinUnitsPerKilobyte = await mainClient.blockchainEstimatefee(numberOfBlocks);
   if (coinUnitsPerKilobyte === -1) return 1;
-  return Math.round(new BigNumber(coinUnitsPerKilobyte).dividedBy(1024).multipliedBy(100000000).toNumber());
+  // ECR fee rates are sub-1 sat/vByte (~0.0098). Do NOT round to an integer here —
+  // Math.round() would collapse the real rate to 0. The BlueWallet coinselect fork
+  // accepts fractional feeRate (validates via positiveNumOrNaN), so keep full precision.
+  return new BigNumber(coinUnitsPerKilobyte).dividedBy(1024).multipliedBy(100000000).toNumber();
 };
 
 export const serverFeatures = async function () {
@@ -1236,3 +1283,7 @@ const semVerToInt = function (semver: string): number {
 
   return ret;
 };
+
+export function getServerBanner(): Promise<string> {
+  return mainClient.request('server.banner', []);
+}

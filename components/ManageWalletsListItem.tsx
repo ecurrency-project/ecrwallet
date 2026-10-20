@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { StyleSheet, ViewStyle, TouchableOpacity, ActivityIndicator, Platform, Animated, View, Text, TextStyle } from 'react-native';
+import { StyleSheet, ViewStyle, TouchableOpacity, ActivityIndicator, Platform, Animated, View, TextStyle } from 'react-native';
 import { Icon, ListItem } from '@rneui/base';
 import { ExtendedTransaction, LightningTransaction, Transaction, TWallet } from '../class/wallets/types';
 import { WalletCarouselItem } from './WalletsCarousel';
@@ -11,6 +11,7 @@ import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapt
 import { AddressItem } from './addresses/AddressItem';
 import { ItemType, AddressItemData } from '../models/itemTypes';
 import WalletGradient from '../class/wallet-gradient';
+import { BlueText } from '../BlueComponents';
 
 interface WalletItem {
   type: ItemType.WalletSection;
@@ -36,7 +37,7 @@ interface ManageWalletsListItemProps {
   isPlaceHolder?: boolean;
   onPressIn?: () => void;
   onPressOut?: () => void;
-  state: { wallets: TWallet[]; searchQuery: string; isSearchFocused?: boolean };
+  state: { wallets: TWallet[] };
   navigateToWallet: (wallet: TWallet) => void;
   navigateToAddress?: (address: string, walletID: string) => void;
   renderHighlightedText: (text: string, query: string) => JSX.Element;
@@ -103,7 +104,7 @@ const ManageWalletsListItem: React.FC<ManageWalletsListItemProps> = ({
   const scaleValue = useRef(new Animated.Value(1)).current;
   const prevIsActive = useRef(isActive);
 
-  const DEFAULT_VERTICAL_MARGIN = -10;
+  const DEFAULT_VERTICAL_MARGIN = -5;
   const REDUCED_VERTICAL_MARGIN = -50;
 
   const animateItemIn = useCallback(() => {
@@ -194,7 +195,7 @@ const ManageWalletsListItem: React.FC<ManageWalletsListItemProps> = ({
     const backgroundColor = isActive || globalDragActive ? colors.brandingColor : colors.background;
 
     // Disable swiping only when search bar is focused or during active dragging
-    const swipeDisabled = isActive || globalDragActive || state.isSearchFocused === true;
+    const swipeDisabled = isActive || globalDragActive;
 
     return (
       <Animated.View style={animatedStyle}>
@@ -229,7 +230,6 @@ const ManageWalletsListItem: React.FC<ManageWalletsListItemProps> = ({
               onPressIn={onPressIn}
               onPressOut={onPressOut}
               animationsEnabled={false}
-              searchQuery={state.searchQuery}
               isPlaceHolder={isPlaceHolder}
               renderHighlightedText={renderHighlightedText}
               customStyle={styles.carouselItem}
@@ -263,9 +263,8 @@ const ManageWalletsListItem: React.FC<ManageWalletsListItemProps> = ({
         >
           <TransactionListItem
             item={item.data}
-            itemPriceUnit={w?.getPreferredBalanceUnit() || BitcoinUnit.BTC}
+            itemPriceUnit={w?.getPreferredBalanceUnit() || BitcoinUnit.ECR}
             walletID={walletID}
-            searchQuery={state.searchQuery}
             renderHighlightedText={renderHighlightedText}
             style={transactionStyle}
           />
@@ -288,11 +287,10 @@ const ManageWalletsListItem: React.FC<ManageWalletsListItemProps> = ({
         balance: 0,
         transactions: 0,
       },
-      balanceUnit: wallet.getPreferredBalanceUnit() || BitcoinUnit.BTC,
+      balanceUnit: wallet.getPreferredBalanceUnit() || BitcoinUnit.ECR,
       walletID: item.data.walletID,
       allowSignVerifyMessage: wallet.allowSignVerifyMessage ? wallet.allowSignVerifyMessage() : false,
       onPress: navigateToAddress ? () => navigateToAddress(item.data.address, item.data.walletID) : undefined,
-      searchQuery: state.searchQuery,
       renderHighlightedText,
     };
 
@@ -319,11 +317,10 @@ interface WalletGroupProps {
   wallet: TWallet;
   transactions: TransactionItem[];
   addresses: AddressItem[];
-  state: { wallets: TWallet[]; searchQuery: string };
+  state: { wallets: TWallet[] };
   navigateToWallet: (wallet: TWallet) => void;
   navigateToAddress?: (address: string, walletID: string) => void;
   renderHighlightedText: (text: string, query: string) => JSX.Element;
-  isSearching: boolean;
 }
 
 const WalletGroupComponent: React.FC<WalletGroupProps> = ({
@@ -334,7 +331,6 @@ const WalletGroupComponent: React.FC<WalletGroupProps> = ({
   navigateToWallet,
   navigateToAddress,
   renderHighlightedText,
-  isSearching,
 }) => {
   const { colors } = useTheme();
   const [expanded] = useState(true); // Always show child items when searching
@@ -403,8 +399,6 @@ const WalletGroupComponent: React.FC<WalletGroupProps> = ({
 
   const sectionHeaderTextStyle: TextStyle = {
     color: colors.foregroundColor,
-    fontWeight: '600' as const,
-    fontSize: 14,
   };
 
   const dividerStyle = [styles.itemDivider, { backgroundColor: primaryColor + '20' }];
@@ -423,7 +417,6 @@ const WalletGroupComponent: React.FC<WalletGroupProps> = ({
             handleLongPress={undefined}
             onPress={onWalletPress}
             animationsEnabled={false}
-            searchQuery={state.searchQuery}
             isPlaceHolder={false}
             renderHighlightedText={renderHighlightedText}
             customStyle={styles.carouselItem}
@@ -437,18 +430,17 @@ const WalletGroupComponent: React.FC<WalletGroupProps> = ({
             {transactions.length > 0 && (
               <>
                 <View style={sectionHeaderStyle}>
-                  <Text style={sectionHeaderTextStyle}>
+                  <BlueText style={sectionHeaderTextStyle}>
                     {loc.addresses.transactions} ({transactions.length})
-                  </Text>
+                  </BlueText>
                 </View>
                 {transactions.map((transaction, index) => (
                   <View key={`tx-${index}`}>
                     <View style={childItemStyle()}>
                       <TransactionListItem
                         item={transaction.data}
-                        itemPriceUnit={wallet.getPreferredBalanceUnit() || BitcoinUnit.BTC}
+                        itemPriceUnit={wallet.getPreferredBalanceUnit() || BitcoinUnit.ECR}
                         walletID={wallet.getID()}
-                        searchQuery={state.searchQuery}
                         renderHighlightedText={renderHighlightedText}
                       />
                     </View>
@@ -462,9 +454,9 @@ const WalletGroupComponent: React.FC<WalletGroupProps> = ({
             {addresses.length > 0 && (
               <>
                 <View style={sectionHeaderStyle}>
-                  <Text style={sectionHeaderTextStyle}>
+                  <BlueText style={sectionHeaderTextStyle}>
                     {loc.addresses.addresses_title} ({addresses.length})
-                  </Text>
+                  </BlueText>
                 </View>
                 {addresses.map((address, index) => {
                   const addressItemProps = {
@@ -476,12 +468,11 @@ const WalletGroupComponent: React.FC<WalletGroupProps> = ({
                       balance: 0,
                       transactions: 0,
                     },
-                    balanceUnit: wallet.getPreferredBalanceUnit() || BitcoinUnit.BTC,
+                    balanceUnit: wallet.getPreferredBalanceUnit() || BitcoinUnit.ECR,
                     walletID: address.data.walletID,
                     allowSignVerifyMessage: wallet.allowSignVerifyMessage ? wallet.allowSignVerifyMessage() : false,
                     // Use the onPress function returned by navigateToAddress instead of calling it directly
                     onPress: navigateToAddress ? () => navigateToAddress(address.data.address, address.data.walletID) : undefined,
-                    searchQuery: state.searchQuery,
                     renderHighlightedText,
                   };
 

@@ -1,9 +1,10 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapticFeedback';
 import loc from '../loc';
+import { BlueText, Styles } from '../BlueComponents';
 
 type CopyToClipboardButtonProps = {
   stringToCopy: string;
@@ -18,13 +19,16 @@ export const CopyToClipboardButton: React.FC<CopyToClipboardButtonProps> = ({ st
 
   return (
     <TouchableOpacity accessibilityRole="button" onPress={onPress}>
-      <Text style={styles.text}>{displayText && displayText.length > 0 ? displayText : loc.transactions.details_copy}</Text>
+      <BlueText style={styles.text}>{displayText && displayText.length > 0 ? displayText : loc.transactions.details_copy}</BlueText>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  text: { fontSize: 16, fontWeight: '400', color: '#68bbe1' },
+  text: {
+    ...Styles.fonts['P2 Regular'],
+    color: '#2363d0',
+  },
 });
 
 export default CopyToClipboardButton;

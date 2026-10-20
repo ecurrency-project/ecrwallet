@@ -1,11 +1,11 @@
 import BIP32Factory, { BIP32Interface } from 'bip32';
 import * as bip39 from 'bip39';
-import * as bitcoin from 'bitcoinjs-lib';
-import { Psbt, Transaction } from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
+import { Psbt, Transaction } from '@qbtc/bitcoinjs-lib';
 import b58 from 'bs58check';
 import { CoinSelectOutput, CoinSelectReturnInput, CoinSelectTarget } from 'coinselect';
 import { sha256 } from '@noble/hashes/sha256';
-import { ECPairFactory } from 'ecpair';
+import { ECPairFactory } from '@qbtc/ecpair';
 import * as mn from 'electrum-mnemonic';
 
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';

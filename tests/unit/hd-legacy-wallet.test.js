@@ -1,5 +1,5 @@
 import assert from 'assert';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 
 import { HDLegacyP2PKHWallet } from '../../class';
 

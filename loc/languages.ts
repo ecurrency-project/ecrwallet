@@ -24,6 +24,7 @@ export const AvailableLanguages: Readonly<TLanguage[]> = Object.freeze([
   { label: 'Italiano (IT)', value: 'it' },
   { label: 'Indonesia (ID)', value: 'id_id' },
   { label: 'Қазақ (KK)', value: 'kk@Cyrl' },
+  { label: 'Кыргызча (KY)', value: 'ky' },
   { label: 'Magyar (HU)', value: 'hu_hu' },
   { label: '日本語 (JP)', value: 'jp_jp' },
   { label: '한국어 (KO)', value: 'ko_kr' },

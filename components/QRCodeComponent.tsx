@@ -64,7 +64,7 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   onError = () => {},
 }) => {
   const qrCode = useRef<any>();
-  const { colors, dark } = useTheme();
+  const { dark } = useTheme();
 
   const handleShareQRCode = () => {
     qrCode.current.toDataURL((data: string) => {
@@ -93,11 +93,10 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   const renderQRCode = (
     <QRCode
       value={value}
-      {...(isLogoRendered ? { logo: require('../img/qr-code.png') } : {})}
+      {...(isLogoRendered ? { logo: require('../img/ecurrency-icon_shape.png') } : {})}
       size={newSize}
       logoSize={logoSize}
       color="#000000"
-      logoBackgroundColor={colors.brandingColor}
       backgroundColor="#FFFFFF"
       ecl={ecl}
       getRef={(c: any) => (qrCode.current = c)}

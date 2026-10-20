@@ -13,3 +13,7 @@
 -keep class com.facebook.jni.** { *; }
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
+
+# librealm.so resolves io.realm.react.util.SSLHelper via JNI FindClass in
+# JNI_OnLoad, so there is no bytecode reference for R8 to follow.
+-keep class io.realm.react.** { *; }

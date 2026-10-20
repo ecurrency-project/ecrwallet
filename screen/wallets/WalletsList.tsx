@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useReducer, useRef, useMemo } from 'react';
 import { useFocusEffect, useIsFocused, useRoute, RouteProp } from '@react-navigation/native';
-import { Alert, findNodeHandle, Image, InteractionManager, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, findNodeHandle, InteractionManager, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import A from '../../blue_modules/analytics';
 import { getClipboardContent } from '../../blue_modules/clipboard';
 import { isDesktop } from '../../blue_modules/environment';
@@ -9,7 +9,7 @@ import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/h
 import DeeplinkSchemaMatch from '../../class/deeplink-schema-match';
 import { ExtendedTransaction, Transaction, TWallet } from '../../class/wallets/types';
 import presentAlert from '../../components/Alert';
-import { FButton, FContainer } from '../../components/FloatButtons';
+import { FContainer } from '../../components/FloatButtons';
 import { useTheme } from '../../components/themes';
 import { TransactionListItem } from '../../components/TransactionListItem';
 import WalletsCarousel from '../../components/WalletsCarousel';
@@ -25,6 +25,9 @@ import { useSettings } from '../../hooks/context/useSettings';
 import useMenuElements from '../../hooks/useMenuElements';
 import SafeAreaSectionList from '../../components/SafeAreaSectionList';
 import { scanQrHelper } from '../../helpers/scan-qr.ts';
+import HistoryIcon from '../../img/icons/HistoryIcon.tsx';
+import ScanIcon from '../../img/icons/ScanIcon.tsx';
+import { BlueText, Styles } from '../../BlueComponents';
 
 const WalletsListSections = { CAROUSEL: 'CAROUSEL', TRANSACTIONS: 'TRANSACTIONS' };
 
@@ -98,19 +101,19 @@ const WalletsList: React.FC = () => {
   const [state, dispatch] = useReducer<React.Reducer<WalletListState, WalletListAction>>(reducer, initialState);
   const { isLoading } = state;
   const { sizeClass, isLarge } = useSizeClass();
-  const walletsCarousel = useRef<any>();
+  const walletsCarousel = useRef<any>(null);
   const currentWalletIndex = useRef<number>(0);
   const { registerTransactionsHandler, unregisterTransactionsHandler } = useMenuElements();
   const { wallets, getTransactions, getBalance, refreshAllWalletTransactions } = useStorage();
   const { isTotalBalanceEnabled, isElectrumDisabled } = useSettings();
   const { width } = useWindowDimensions();
-  const { colors, scanImage } = useTheme();
+  const { colors } = useTheme();
   const navigation = useExtendedNavigation<NavigationProps>();
   const isFocused = useIsFocused();
   const route = useRoute<RouteProps>();
   const dataSource = getTransactions(undefined, 10);
   const walletsCount = useRef<number>(wallets.length);
-  const walletActionButtonsRef = useRef<any>();
+  const walletActionButtonsRef = useRef<any>(null);
 
   const stylesHook = StyleSheet.create({
     walletsListWrapper: {
@@ -274,14 +277,14 @@ const WalletsList: React.FC = () => {
   const renderListHeaderComponent = useCallback(() => {
     return (
       <View style={[styles.listHeaderBack, stylesHook.listHeaderBack]}>
-        <Text
+        <BlueText
           textBreakStrategy="simple"
           style={[styles.listHeaderText, stylesHook.listHeaderText]}
           numberOfLines={2}
           adjustsFontSizeToFit={true}
         >
           {`${loc.transactions.list_title}${'  '}`}
-        </Text>
+        </BlueText>
       </View>
     );
   }, [stylesHook.listHeaderBack, stylesHook.listHeaderText]);
@@ -292,7 +295,12 @@ const WalletsList: React.FC = () => {
 
   const renderTransactionListsRow = useCallback(
     (item: ExtendedTransaction) => (
-      <TransactionListItem key={item.hash} item={item} itemPriceUnit={item.walletPreferredBalanceUnit} walletID={item.walletID} />
+      <TransactionListItem
+        key={item.hash + item.confirmations}
+        item={item}
+        itemPriceUnit={item.walletPreferredBalanceUnit}
+        walletID={item.walletID}
+      />
     ),
     [],
   );
@@ -361,8 +369,11 @@ const WalletsList: React.FC = () => {
           if (dataSource.length === 0 && !isLoading) {
             return (
               <View style={styles.footerRoot} testID="NoTransactionsMessage">
-                <Text style={styles.footerEmpty}>{loc.wallets.list_empty_txs1}</Text>
-                <Text style={styles.footerStart}>{loc.wallets.list_empty_txs2}</Text>
+                <HistoryIcon color={colors.historyIcon} size={48} />
+                <BlueText style={styles.footerEmpty}>{loc.wallets.list_empty_txs1}</BlueText>
+                <BlueText bold style={styles.footerStart}>
+                  {loc.wallets.list_empty_txs2}
+                </BlueText>
               </View>
             );
           } else {
@@ -372,27 +383,28 @@ const WalletsList: React.FC = () => {
           return null;
       }
     },
-    [dataSource.length, isLoading],
+    [dataSource.length, isLoading, colors],
   );
 
   const renderScanButton = useCallback(() => {
-    if (wallets.length > 0) {
+    if (wallets.length >= 0) {
       return (
         <FContainer ref={walletActionButtonsRef.current}>
-          <FButton
-            onPress={onScanButtonPressed}
+          <TouchableOpacity
             onLongPress={sendButtonLongPress}
-            icon={<Image resizeMode="stretch" source={scanImage} />}
-            text={loc.send.details_scan}
-            testID="HomeScreenScanButton"
-          />
+            style={[styles.scanButton, { backgroundColor: colors.buttonDisabledBackgroundColor }]}
+            onPress={onScanButtonPressed}
+          >
+            <ScanIcon color={colors.historyIcon} />
+            <BlueText>{loc.send.details_scan}</BlueText>
+          </TouchableOpacity>
         </FContainer>
       );
     } else {
       return null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scanImage, wallets.length]);
+  }, [wallets.length]);
 
   const sectionListKeyExtractor = useCallback((item: any, index: any) => {
     return `${item}${index}}`;
@@ -512,6 +524,7 @@ const WalletsList: React.FC = () => {
   return (
     <>
       <SafeAreaSectionList<any | string, SectionData>
+        contentContainerStyle={styles.contentContainerStyle}
         renderItem={renderSectionItem}
         keyExtractor={sectionListKeyExtractor}
         renderSectionHeader={renderSectionHeader}
@@ -541,8 +554,7 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
   listHeaderText: {
-    fontWeight: 'bold',
-    fontSize: 24,
+    ...Styles.fonts['P3 Bold'],
     marginVertical: 16,
     flexWrap: 'wrap',
   },
@@ -550,6 +562,8 @@ const styles = StyleSheet.create({
     top: 80,
     height: 160,
     marginBottom: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footerEmpty: {
     fontSize: 18,
@@ -557,9 +571,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   footerStart: {
-    fontSize: 18,
+    fontSize: 14,
     color: '#9aa0aa',
     textAlign: 'center',
-    fontWeight: '600',
+  },
+  scanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 40,
+    width: '100%',
+    gap: 10,
+    height: 52,
+  },
+  contentContainerStyle: {
+    gap: 12,
   },
 });

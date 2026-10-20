@@ -1,33 +1,27 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, StyleSheet, TextInput, View, Pressable, AppState } from 'react-native';
-import { Button as ButtonRNElements } from '@rneui/themed';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, AppState } from 'react-native';
 import {
   getDefaultUri,
   getPushToken,
   getSavedUri,
   getStoredNotifications,
-  saveUri,
   isNotificationsEnabled,
   setLevels,
   tryToObtainPermissions,
   cleanUserOptOutFlag,
-  isGroundControlUriValid,
   checkPermissions,
   checkNotificationPermissionStatus,
   NOTIFICATIONS_NO_AND_DONT_ASK_FLAG,
 } from '../../blue_modules/notifications';
 import { BlueCard, BlueText } from '../../BlueComponents';
 import presentAlert from '../../components/Alert';
-import { Button } from '../../components/Button';
-import CopyToClipboardButton from '../../components/CopyToClipboardButton';
 import ListItem, { PressableWrapper } from '../../components/ListItem';
 import { useTheme } from '../../components/themes';
 import loc from '../../loc';
-import { Divider } from '@rneui/base';
 import { openSettings } from 'react-native-permissions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
-import { BlueSpacing20, BlueSpacing40 } from '../../components/BlueSpacing';
+import { BlueSpacing40 } from '../../components/BlueSpacing';
 import { useLocale } from '@react-navigation/native';
 
 const NotificationSettings: React.FC = () => {
@@ -36,23 +30,12 @@ const NotificationSettings: React.FC = () => {
   const [tokenInfo, setTokenInfo] = useState('<empty>');
   const { direction } = useLocale();
   const [URI, setURI] = useState<string | undefined>();
-  const [tapCount, setTapCount] = useState(0);
   const { colors } = useTheme();
   const stylesWithThemeHook = StyleSheet.create({
     scroll: {
       backgroundColor: colors.background,
     },
-
-    uri: {
-      borderColor: colors.formBorder,
-      borderBottomColor: colors.formBorder,
-      backgroundColor: colors.inputBackgroundColor,
-    },
-    buttonStyles: { flexDirection: direction === 'rtl' ? 'row-reverse' : 'row' },
   });
-  const handleTap = () => {
-    setTapCount(prevCount => prevCount + 1);
-  };
 
   const showNotificationPermissionAlert = () => {
     presentAlert({
@@ -170,26 +153,6 @@ const NotificationSettings: React.FC = () => {
     };
   }, []);
 
-  const save = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      if (URI) {
-        if (await isGroundControlUriValid(URI)) {
-          await saveUri(URI);
-          presentAlert({ message: loc.settings.saved });
-        } else {
-          presentAlert({ message: loc.settings.not_a_valid_uri });
-        }
-      } else {
-        await saveUri('');
-        presentAlert({ message: loc.settings.saved });
-      }
-    } catch (error) {
-      console.error('Error saving URI:', error);
-    }
-    setIsLoading(false);
-  }, [URI]);
-
   const onSystemSettings = () => {
     openSettings('notifications');
   };
@@ -205,65 +168,9 @@ const NotificationSettings: React.FC = () => {
         switch={{ onValueChange: onNotificationsSwitch, value: isNotificationsEnabledState, testID: 'NotificationsSwitch' }}
       />
 
-      <Pressable onPress={handleTap}>
-        <BlueCard>
-          <BlueText style={styles.multilineText}>{loc.settings.push_notifications_explanation}</BlueText>
-        </BlueCard>
-      </Pressable>
-
-      {tapCount >= 10 && (
-        <>
-          <Divider />
-          <BlueCard>
-            <BlueText>{loc.settings.groundcontrol_explanation}</BlueText>
-          </BlueCard>
-
-          <ButtonRNElements
-            icon={{
-              name: 'github',
-              type: 'font-awesome',
-              color: colors.foregroundColor,
-            }}
-            onPress={() => Linking.openURL('https://github.com/BlueWallet/GroundControl')}
-            titleStyle={{ color: colors.buttonAlternativeTextColor }}
-            title="github.com/BlueWallet/GroundControl"
-            color={colors.buttonTextColor}
-            buttonStyle={[styles.buttonStyle, stylesWithThemeHook.buttonStyles]}
-          />
-
-          <BlueCard>
-            <View style={[styles.uri, stylesWithThemeHook.uri]}>
-              <TextInput
-                placeholder={getDefaultUri()}
-                value={URI}
-                onChangeText={setURI}
-                numberOfLines={1}
-                style={styles.uriText}
-                placeholderTextColor="#81868e"
-                editable={!isLoading}
-                textContentType="URL"
-                autoCapitalize="none"
-                underlineColorAndroid="transparent"
-              />
-            </View>
-
-            <BlueSpacing20 />
-            <BlueText style={styles.centered} onPress={() => setTapCount(tapCount + 1)}>
-              ♪ Ground Control to Major Tom ♪
-            </BlueText>
-            <BlueText style={styles.centered} onPress={() => setTapCount(tapCount + 1)}>
-              ♪ Commencing countdown, engines on ♪
-            </BlueText>
-
-            <View>
-              <CopyToClipboardButton stringToCopy={tokenInfo} displayText={tokenInfo} />
-            </View>
-
-            <BlueSpacing20 />
-            <Button onPress={save} title={loc.settings.save} />
-          </BlueCard>
-        </>
-      )}
+      <BlueCard>
+        <BlueText style={styles.multilineText}>{loc.settings.push_notifications_explanation}</BlueText>
+      </BlueCard>
       <BlueSpacing40 />
       <ListItem title={loc.settings.privacy_system_settings} onPress={onSystemSettings} chevron />
     </SafeAreaScrollView>
@@ -271,28 +178,6 @@ const NotificationSettings: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  uri: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderBottomWidth: 0.5,
-    minHeight: 44,
-    height: 44,
-    alignItems: 'center',
-    borderRadius: 4,
-  },
-  centered: {
-    textAlign: 'center',
-  },
-  uriText: {
-    flex: 1,
-    color: '#81868e',
-    marginHorizontal: 8,
-    minHeight: 36,
-    height: 36,
-  },
-  buttonStyle: {
-    backgroundColor: 'transparent',
-  },
   multilineText: {
     textAlign: 'left',
     lineHeight: 20,

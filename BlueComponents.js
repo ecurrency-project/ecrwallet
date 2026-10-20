@@ -14,6 +14,16 @@ if (aspectRatio > 1.6) {
   isIpad = true;
 }
 
+const fontBold = Platform.select({
+  ios: 'PTSans-Bold',
+  android: 'PTSansBold',
+});
+
+const fontRegular = Platform.select({
+  ios: 'PTSans-Regular',
+  android: 'PTSansRegular',
+});
+
 /**
  * TODO: remove this comment once this file gets properly converted to typescript.
  *
@@ -23,13 +33,13 @@ export const BlueButtonLink = forwardRef((props, ref) => {
   const { colors } = useTheme();
   return (
     <Pressable accessibilityRole="button" style={({ pressed }) => [styles.blueButtonLink, pressed && styles.pressed]} {...props} ref={ref}>
-      <Text style={{ color: colors.foregroundColor, textAlign: 'center', fontSize: 16 }}>{props.title}</Text>
+      <BlueText style={{ color: colors.foregroundColor, textAlign: 'center', ...Styles.fonts['P2 Regular'] }}>{props.title}</BlueText>
     </Pressable>
   );
 });
 
 export const BlueCard = props => {
-  return <View {...props} style={{ padding: 20 }} />;
+  return <View {...props} style={{ padding: 16 }} />;
 };
 
 export const BlueText = ({ bold = false, ...props }) => {
@@ -37,30 +47,40 @@ export const BlueText = ({ bold = false, ...props }) => {
   const { direction } = useLocale();
   const style = StyleSheet.compose(
     {
+      ...(bold ? Styles.fonts['P2 Bold'] : Styles.fonts['P2 Regular']),
       color: colors.foregroundColor,
       writingDirection: direction,
-      fontWeight: bold ? 'bold' : 'normal',
     },
     props.style,
   );
   return <Text {...props} style={style} />;
 };
 
-export const BlueTextCentered = props => {
-  const { colors } = useTheme();
-  return <Text {...props} style={{ color: colors.foregroundColor, textAlign: 'center' }} />;
-};
-
-export const BlueFormLabel = props => {
+export const BlueTextCentered = ({ bold = false, ...props }) => {
   const { colors } = useTheme();
   const { direction } = useLocale();
-
   return (
     <Text
       {...props}
       style={{
+        ...(bold ? Styles.fonts['P2 Bold'] : Styles.fonts['P2 Regular']),
         color: colors.foregroundColor,
-        fontWeight: '400',
+        textAlign: 'center',
+        writingDirection: direction,
+      }}
+    />
+  );
+};
+
+export const BlueFormLabel = ({ bold = false, ...props }) => {
+  const { colors } = useTheme();
+  const { direction } = useLocale();
+  return (
+    <Text
+      {...props}
+      style={{
+        ...(bold ? Styles.fonts['P2 Bold'] : Styles.fonts['P2 Regular']),
+        color: colors.foregroundColor,
         marginHorizontal: 20,
         writingDirection: direction,
       }}
@@ -78,7 +98,8 @@ export const BlueFormMultiInput = props => {
       numberOfLines={4}
       editable={!props.editable}
       style={{
-        paddingHorizontal: 8,
+        ...Styles.fonts['P2 Regular'],
+        paddingHorizontal: 24,
         paddingVertical: 16,
         flex: 1,
         marginTop: 5,
@@ -86,8 +107,7 @@ export const BlueFormMultiInput = props => {
         borderColor: colors.formBorder,
         borderBottomColor: colors.formBorder,
         borderWidth: 1,
-        borderBottomWidth: 0.5,
-        borderRadius: 4,
+        borderRadius: 24,
         backgroundColor: colors.inputBackgroundColor,
         color: colors.foregroundColor,
         textAlignVertical: 'top',
@@ -137,3 +157,48 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+
+export const Styles = {
+  fonts: {
+    'P1 Regular': {
+      fontFamily: fontRegular,
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    'P1 Bold': {
+      fontFamily: fontBold,
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    'P2 Regular': {
+      fontFamily: fontRegular,
+      fontSize: 16,
+      lineHeight: 20,
+    },
+    'P2 Bold': {
+      fontFamily: fontBold,
+      fontSize: 16,
+      lineHeight: 20,
+    },
+    'P3 Regular': {
+      fontFamily: fontRegular,
+      fontSize: 20,
+      lineHeight: 24,
+    },
+    'P3 Bold': {
+      fontFamily: fontBold,
+      fontSize: 20,
+      lineHeight: 24,
+    },
+    'P4 Regular': {
+      fontFamily: fontRegular,
+      fontSize: 30,
+      lineHeight: 36,
+    },
+    'P4 Bold': {
+      fontFamily: fontBold,
+      fontSize: 30,
+      lineHeight: 36,
+    },
+  },
+};

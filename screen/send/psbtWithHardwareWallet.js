@@ -1,13 +1,13 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import { StackActions, useIsFocused, useRoute } from '@react-navigation/native';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Linking, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueCard, BlueText } from '../../BlueComponents';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
 import presentAlert from '../../components/Alert';
 import CopyToClipboardButton from '../../components/CopyToClipboardButton';
 import { DynamicQRCode } from '../../components/DynamicQRCode';
@@ -53,11 +53,13 @@ const PsbtWithHardwareWallet = () => {
       color: colors.foregroundColor,
     },
     hexInput: {
+      ...Styles.fonts['P2 Regular'],
       borderColor: colors.formBorder,
       backgroundColor: colors.inputBackgroundColor,
       color: colors.foregroundColor,
     },
     hexText: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.foregroundColor,
     },
   });
@@ -208,7 +210,7 @@ const PsbtWithHardwareWallet = () => {
       const res = await DocumentPicker.pickSingle({
         type:
           Platform.OS === 'ios'
-            ? ['io.bluewallet.psbt', 'io.bluewallet.psbt.txn', DocumentPicker.types.json]
+            ? [DocumentPicker.types.plainText, DocumentPicker.types.json]
             : [DocumentPicker.types.allFiles],
       });
       const file = await RNFS.readFile(res.uri);

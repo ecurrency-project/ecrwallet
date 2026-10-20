@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { requireNativeComponent, View, StyleSheet, NativeSyntheticEvent } from 'react-native';
+import React, { useCallback } from 'react';
+import { requireNativeComponent, View, StyleSheet } from 'react-native';
+import type { NativeSyntheticEvent } from 'react-native';
 
 interface SegmentedControlProps {
   values: string[];
@@ -21,8 +22,8 @@ interface NativeSegmentedControlProps {
 const NativeSegmentedControl = requireNativeComponent<NativeSegmentedControlProps>('CustomSegmentedControl');
 
 const SegmentedControl: React.FC<SegmentedControlProps> = ({ values, selectedIndex, onChange }) => {
-  const handleChange = useMemo(
-    () => (event: NativeSyntheticEvent<SegmentedControlEvent>) => {
+  const handleChange = useCallback(
+    (event: NativeSyntheticEvent<SegmentedControlEvent>) => {
       if (event?.nativeEvent?.selectedIndex !== undefined) {
         onChange(event.nativeEvent.selectedIndex);
       }
@@ -43,7 +44,7 @@ const SegmentedControl: React.FC<SegmentedControlProps> = ({ values, selectedInd
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    width: '90%',
     marginHorizontal: 18,
     marginBottom: 18,
     minHeight: 40,

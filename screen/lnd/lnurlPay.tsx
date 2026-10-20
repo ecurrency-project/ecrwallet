@@ -5,7 +5,7 @@ import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { Icon } from '@rneui/themed';
 import { btcToSatoshi, fiatToBTC, satoshiToBTC, satoshiToLocalCurrency } from '../../blue_modules/currency';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueCard, BlueText } from '../../BlueComponents';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
 import Lnurl from '../../class/lnurl';
 import presentAlert from '../../components/Alert';
 import * as AmountInput from '../../components/AmountInput';
@@ -38,7 +38,7 @@ const LnurlPay: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>, string>>();
   const { walletID, lnurl } = route.params;
   const wallet = wallets.find(w => w.getID() === walletID) as LightningCustodianWallet;
-  const [unit, setUnit] = useState<BitcoinUnit>(wallet?.getPreferredBalanceUnit() ?? BitcoinUnit.BTC);
+  const [unit, setUnit] = useState<BitcoinUnit>(wallet?.getPreferredBalanceUnit() ?? BitcoinUnit.ECR);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [_LN, setLN] = useState<Lnurl | undefined>();
   const [payButtonDisabled, setPayButtonDisabled] = useState<boolean>(true);
@@ -52,9 +52,11 @@ const LnurlPay: React.FC = () => {
       backgroundColor: colors.background,
     },
     walletWrapLabel: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
     walletWrapBalance: {
+      ...Styles.fonts['P1 Regular'],
       color: colors.buttonAlternativeTextColor,
     },
     walletWrapSats: {
@@ -89,7 +91,7 @@ const LnurlPay: React.FC = () => {
         return;
       }
       switch (unit) {
-        case BitcoinUnit.BTC:
+        case BitcoinUnit.ECR:
           newAmount = satoshiToBTC(newAmount);
           break;
         case BitcoinUnit.LOCAL_CURRENCY:
@@ -122,7 +124,7 @@ const LnurlPay: React.FC = () => {
       case BitcoinUnit.SATS:
         amountSats = parseInt(amount, 10);
         break;
-      case BitcoinUnit.BTC:
+      case BitcoinUnit.ECR:
         amountSats = btcToSatoshi(amount);
         break;
       case BitcoinUnit.LOCAL_CURRENCY:
@@ -268,8 +270,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   walletSelectText: {
+    ...Styles.fonts['P1 Regular'],
     color: '#9aa0aa',
-    fontSize: 14,
     marginRight: 8,
   },
   walletWrap: {
@@ -282,17 +284,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   walletWrapLabel: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
   },
   walletWrapBalance: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...Styles.fonts['P1 Bold'],
     marginLeft: 4,
     marginRight: 4,
   },
   walletWrapSats: {
+    ...Styles.fonts['P1 Bold'],
     fontSize: 11,
-    fontWeight: '600',
+    lineHeight: 15,
     textAlignVertical: 'bottom',
     marginTop: 2,
   },

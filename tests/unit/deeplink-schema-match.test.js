@@ -201,17 +201,6 @@ describe.each(['', '//'])('unit - DeepLinkSchemaMatch', function (suffix) {
       },
       {
         argument: {
-          url: 'bluewallet:setelectrumserver?server=electrum1.bluewallet.io%3A443%3As',
-        },
-        expected: [
-          'ElectrumSettings',
-          {
-            server: 'electrum1.bluewallet.io:443:s',
-          },
-        ],
-      },
-      {
-        argument: {
           url: 'bluewallet:setlndhuburl?url=https%3A%2F%2Flndhub.herokuapp.com',
         },
         expected: [
@@ -367,12 +356,12 @@ describe.each(['', '//'])('unit - DeepLinkSchemaMatch', function (suffix) {
 
   it('encodes bip21', () => {
     let encoded = DeeplinkSchemaMatch.bip21encode('1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH');
-    assert.strictEqual(encoded, 'bitcoin:1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH');
+    assert.strictEqual(encoded, 'ecr:1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH');
     encoded = DeeplinkSchemaMatch.bip21encode('1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH', {
       amount: 20.3,
       label: 'Foobar',
     });
-    assert.strictEqual(encoded, 'bitcoin:1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH?amount=20.3&label=Foobar');
+    assert.strictEqual(encoded, 'ecr:1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH?amount=20.3&label=Foobar');
   });
 
   it('encodes bip21 and discards empty arguments', () => {
@@ -385,8 +374,8 @@ describe.each(['', '//'])('unit - DeepLinkSchemaMatch', function (suffix) {
 
   it('can decodeBitcoinUri', () => {
     assert.deepStrictEqual(
-      DeeplinkSchemaMatch.decodeBitcoinUri(
-        `bitcoin:${suffix}bc1qnapskphjnwzw2w3dk4anpxntunc77v6qrua0f7?amount=0.0001&pj=https://btc.donate.kukks.org/BTC/pj`,
+      DeeplinkSchemaMatch.decodeEcurrencyUri(
+        `ecr:${suffix}bc1qnapskphjnwzw2w3dk4anpxntunc77v6qrua0f7?amount=0.0001&pj=https://btc.donate.kukks.org/BTC/pj`,
       ),
       {
         address: 'bc1qnapskphjnwzw2w3dk4anpxntunc77v6qrua0f7',
@@ -397,7 +386,7 @@ describe.each(['', '//'])('unit - DeepLinkSchemaMatch', function (suffix) {
     );
 
     assert.deepStrictEqual(
-      DeeplinkSchemaMatch.decodeBitcoinUri(`BITCOIN:${suffix}1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH?amount=20.3&label=Foobar`),
+      DeeplinkSchemaMatch.decodeEcurrencyUri(`ECR:${suffix}1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH?amount=20.3&label=Foobar`),
       {
         address: '1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH',
         amount: 20.3,

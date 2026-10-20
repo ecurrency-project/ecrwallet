@@ -6,6 +6,9 @@
         <item name="colorPrimary">@color/button_background_color_dark</item>
         <item name="colorPrimaryVariant">@color/button_alternative_text_color_dark</item>
         <item name="colorOnPrimary">@color/button_text_color_dark</item>
+        <!-- This file replaces AppTheme wholesale, so the dialog overlay must be repeated here -->
+        <item name="alertDialogTheme">@style/AppAlertDialogTheme</item>
+        <item name="materialAlertDialogTheme">@style/AppAlertDialogTheme</item>
     </style>
 
     <style name="WidgetTextPrimary">

@@ -101,6 +101,7 @@
     "details_adv_import": "Въведете Транзакция",
     "details_amount_field_is_not_valid": "Сумата е невалидна",
     "details_amount_field_is_less_than_minimum_amount_sat": "Сумата е прекалено малка. Моля, въведете сума по-голяма от 500 сатошита.",
+    "min_amount": "Минималната сума е {amount}",
     "details_create": "Създайте Фактура",
     "details_error_decode": "Биткойн адреса не може да бъде разпознат",
     "details_fee_field_is_not_valid": "Не валидна такса",
@@ -153,7 +154,7 @@
     "about_sm_github": "GitHub",
     "about_sm_discord": "Discord",
     "about_sm_telegram": "Telegram",
-    "about_sm_twitter": "Последвайте ни в Twitter",
+    "about_sm_twitter": "Последвайте ни в X(Twitter)",
     "biometrics": "Биометрични данни",
     "biom_10times": "Опитахте се да въведете вашата парола 10 пъти. Желаете ли да направите ресет на апликацията? Това ще изтрие всички портфейли и ще декриптира хранилището.",
     "biom_conf_identity": "Моля, потвърдете вашата самоличност.",
@@ -180,6 +181,7 @@
     "save": "Запази"
   },
   "transactions": {
+    "block_height": "Височина на блока",
     "cpfp_create": "Създай",
     "pending": "Не потвърдена транзакция"
   },

@@ -1,12 +1,9 @@
 import React from 'react';
-import Clipboard from '@react-native-clipboard/clipboard';
-import { Alert, Image, Linking, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, Linking, Platform, StyleSheet, View } from 'react-native';
 import { getApplicationName, getBuildNumber, getBundleId, getUniqueIdSync, getVersion, hasGmsSync } from 'react-native-device-info';
-import { Icon } from '@rneui/themed';
 import Rate, { AndroidMarket } from 'react-native-rate';
-import A from '../../blue_modules/analytics';
-import { BlueCard, BlueTextCentered } from '../../BlueComponents';
-import { HDSegwitBech32Wallet } from '../../class';
+import { BlueCard, BlueText, BlueTextCentered, Styles } from '../../BlueComponents';
+import { HDECurrencyWallet } from '../../class';
 import presentAlert from '../../components/Alert';
 import Button from '../../components/Button';
 import ListItem from '../../components/ListItem';
@@ -16,33 +13,18 @@ import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { useSettings } from '../../hooks/context/useSettings';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
-
-const branch = require('../../current-branch.json');
+import LogoIcon from '../../img/icons/LogoIcon.tsx';
 
 const About: React.FC = () => {
   const { navigate } = useExtendedNavigation();
   const { colors } = useTheme();
-  const { width, height } = useWindowDimensions();
   const { isElectrumDisabled } = useSettings();
 
   const stylesHook = StyleSheet.create({
     textBackup: {
       color: colors.foregroundColor,
     },
-    buildWith: {
-      backgroundColor: colors.inputBackgroundColor,
-    },
-    buttonLink: {
-      backgroundColor: colors.lightButton,
-    },
-    textLink: {
-      color: colors.foregroundColor,
-    },
   });
-
-  const handleOnReleaseNotesPress = () => {
-    navigate('ReleaseNotes');
-  };
 
   const handleOnSelfTestPress = () => {
     if (isElectrumDisabled) {
@@ -57,25 +39,21 @@ const About: React.FC = () => {
   };
 
   const handleOnTwitterPress = () => {
-    Linking.openURL('https://twitter.com/bluewalletio');
+    Linking.openURL('https://x.com/eCurrencyECR');
   };
 
-  const handleOnDiscordPress = () => {
-    Linking.openURL('https://discord.gg/btWq2Aby2z');
+  const handleOnLinkedinPress = () => {
+    Linking.openURL('https://www.linkedin.com/company/ecurrency-ecr/');
   };
 
   const handleOnTelegramPress = () => {
-    Linking.openURL('https://t.me/bluewallethat');
-  };
-
-  const handleOnGithubPress = () => {
-    Linking.openURL('https://github.com/BlueWallet/BlueWallet');
+    Linking.openURL('https://t.me/ECReCurrency');
   };
 
   const handleOnRatePress = () => {
     const options = {
-      AppleAppID: '1376878040',
-      GooglePackageName: 'io.bluewallet.bluewallet',
+      AppleAppID: '1376878040', // todo change id after publish
+      GooglePackageName: 'ecurrency.org.ecrwallet',
       preferredAndroidMarket: AndroidMarket.Google,
       preferInApp: Platform.OS !== 'android',
       openAppStoreIfInAppFails: true,
@@ -89,12 +67,16 @@ const About: React.FC = () => {
   };
 
   return (
-    <SafeAreaScrollView testID="AboutScrollView" contentInsetAdjustmentBehavior="automatic" automaticallyAdjustContentInsets>
+    <SafeAreaScrollView
+      contentContainerStyle={styles.container}
+      testID="AboutScrollView"
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustContentInsets
+    >
       <BlueCard>
         <View style={styles.center}>
-          <Image style={styles.logo} source={require('../../img/bluebeast.png')} />
-          <Text style={styles.textFree}>{loc.settings.about_free}</Text>
-          <Text style={[styles.textBackup, stylesHook.textBackup]}>{formatStringAddTwoWhiteSpaces(loc.settings.about_backup)}</Text>
+          <LogoIcon size={100} />
+          <BlueText style={[styles.textBackup, stylesHook.textBackup]}>{formatStringAddTwoWhiteSpaces(loc.settings.about_backup)}</BlueText>
           {((Platform.OS === 'android' && hasGmsSync()) || Platform.OS !== 'android') && (
             <Button onPress={handleOnRatePress} title={loc.settings.about_review + ' ⭐🙏'} />
           )}
@@ -120,43 +102,12 @@ const About: React.FC = () => {
       />
       <ListItem
         leftIcon={{
-          name: 'discord',
+          name: 'linkedin',
           type: 'font-awesome-5',
-          color: '#7289da',
+          color: '#0b66c2',
         }}
-        onPress={handleOnDiscordPress}
-        title={loc.settings.about_sm_discord}
-      />
-      <BlueCard>
-        <View style={[styles.buildWith, stylesHook.buildWith]}>
-          <BlueSpacing20 />
-          <BlueTextCentered>{loc.settings.about_awesome} 👍</BlueTextCentered>
-          <BlueSpacing20 />
-          <BlueTextCentered>React Native</BlueTextCentered>
-          <BlueTextCentered>bitcoinjs-lib</BlueTextCentered>
-          <BlueTextCentered>Nodejs</BlueTextCentered>
-          <BlueTextCentered>Electrum server</BlueTextCentered>
-          <BlueSpacing20 />
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleOnGithubPress}
-            android_ripple={{ color: colors.androidRippleColor }}
-            style={({ pressed }) => [Platform.OS === 'ios' && pressed ? styles.pressed : null, styles.buttonLink, stylesHook.buttonLink]}
-          >
-            <Icon size={22} name="github" type="font-awesome-5" color={colors.foregroundColor} />
-            <Text style={[styles.textLink, stylesHook.textLink]}>{formatStringAddTwoWhiteSpaces(loc.settings.about_sm_github)}</Text>
-          </Pressable>
-        </View>
-      </BlueCard>
-      <ListItem
-        leftIcon={{
-          name: 'book',
-          type: 'font-awesome',
-          color: '#9AA0AA',
-        }}
-        chevron
-        onPress={handleOnReleaseNotesPress}
-        title={loc.settings.about_release_notes}
+        onPress={handleOnLinkedinPress}
+        title="LinkedIn"
       />
       <ListItem
         leftIcon={{
@@ -188,7 +139,7 @@ const About: React.FC = () => {
         chevron
         onPress={async () => {
           const secret = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
-          const w = new HDSegwitBech32Wallet();
+          const w = new HDECurrencyWallet();
           w.setSecret(secret);
 
           const start = Date.now();
@@ -207,27 +158,10 @@ const About: React.FC = () => {
       <BlueSpacing20 />
       <BlueSpacing20 />
       <BlueTextCentered>
-        {getApplicationName()} ver {getVersion()} (build {getBuildNumber() + ' ' + branch})
+        {getApplicationName()} ver {getVersion()} (build {getBuildNumber()})
       </BlueTextCentered>
-      <BlueTextCentered>{new Date(Number(getBuildNumber()) * 1000).toUTCString()}</BlueTextCentered>
       <BlueTextCentered>{getBundleId()}</BlueTextCentered>
-      <BlueTextCentered>
-        w, h = {width}, {height}
-      </BlueTextCentered>
       <BlueTextCentered>Unique ID: {getUniqueIdSync()}</BlueTextCentered>
-      <View style={styles.copyToClipboard}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            const stringToCopy = 'userId:' + getUniqueIdSync();
-            A.logError('copied unique id');
-            Clipboard.setString(stringToCopy);
-          }}
-          style={({ pressed }) => [pressed && styles.pressed]}
-        >
-          <Text style={styles.copyToClipboardText}>{loc.transactions.details_copy}</Text>
-        </Pressable>
-      </View>
       <BlueSpacing20 />
       <BlueSpacing20 />
     </SafeAreaScrollView>
@@ -237,55 +171,19 @@ const About: React.FC = () => {
 export default About;
 
 const styles = StyleSheet.create({
-  copyToClipboard: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  copyToClipboardText: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#68bbe1',
+  container: {
+    paddingHorizontal: 10,
   },
   center: {
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 54,
-  },
-  logo: {
-    width: 102,
-    height: 124,
-  },
-  textFree: {
-    maxWidth: 260,
-    marginVertical: 24,
-    color: '#9AA0AA',
-    fontSize: 15,
-    textAlign: 'center',
-    fontWeight: '500',
+    gap: 12,
   },
   textBackup: {
+    ...Styles.fonts['P2 Bold'],
     maxWidth: 260,
     marginBottom: 40,
-    fontSize: 15,
     textAlign: 'center',
-    fontWeight: '500',
-  },
-  buildWith: {
-    padding: 16,
-    paddingTop: 0,
-    borderRadius: 8,
-  },
-  buttonLink: {
-    borderRadius: 12,
-    justifyContent: 'center',
-    padding: 8,
-    flexDirection: 'row',
-  },
-  textLink: {
-    marginLeft: 8,
-    fontWeight: '600',
-  },
-  pressed: {
-    opacity: 0.6,
   },
 });

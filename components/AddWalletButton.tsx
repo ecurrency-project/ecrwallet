@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, GestureResponderEvent, Pressable } from 'react-native';
-import { Icon } from '@rneui/themed';
+import { StyleSheet, GestureResponderEvent, View } from 'react-native';
 import { useTheme } from './themes';
 import ToolTipMenu from './TooltipMenu';
 import { CommonToolTipActions } from '../typings/CommonToolTipActions';
 import loc from '../loc';
 import { useExtendedNavigation } from '../hooks/useExtendedNavigation';
+import PlusIcon from '../img/icons/PlusIcon.tsx';
 
 type AddWalletButtonProps = {
   onPress?: (event: GestureResponderEvent) => void;
@@ -13,14 +13,14 @@ type AddWalletButtonProps = {
 
 const styles = StyleSheet.create({
   ball: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 38,
+    height: 38,
+    borderRadius: 8,
     justifyContent: 'center',
     alignContent: 'center',
   },
-  pressed: {
-    opacity: 0.6,
+  icon: {
+    alignSelf: 'center',
   },
 });
 
@@ -29,7 +29,7 @@ const AddWalletButton: React.FC<AddWalletButtonProps> = ({ onPress }) => {
   const navigation = useExtendedNavigation();
   const stylesHook = StyleSheet.create({
     ball: {
-      backgroundColor: colors.buttonBackgroundColor,
+      backgroundColor: colors.lightButton,
     },
   });
 
@@ -49,10 +49,18 @@ const AddWalletButton: React.FC<AddWalletButtonProps> = ({ onPress }) => {
   const actions = useMemo(() => [CommonToolTipActions.ImportWallet], []);
 
   return (
-    <ToolTipMenu accessibilityRole="button" accessibilityLabel={loc.wallets.add_title} onPressMenuItem={onPressMenuItem} actions={actions}>
-      <Pressable style={({ pressed }) => [pressed ? styles.pressed : null, styles.ball, stylesHook.ball]} onPress={onPress}>
-        <Icon name="add" size={22} type="ionicons" color={colors.foregroundColor} />
-      </Pressable>
+    <ToolTipMenu
+      accessibilityRole="button"
+      accessibilityLabel={loc.wallets.add_title}
+      isButton
+      onPress={onPress}
+      buttonStyle={[styles.ball, stylesHook.ball]}
+      onPressMenuItem={onPressMenuItem}
+      actions={actions}
+    >
+      <View style={styles.icon}>
+        <PlusIcon color={colors.foregroundColor} size={28} />
+      </View>
     </ToolTipMenu>
   );
 };

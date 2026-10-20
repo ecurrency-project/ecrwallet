@@ -8,8 +8,9 @@ const PREFERRED_CURRENCY_STORAGE_KEY = 'preferredCurrency';
 const PREFERRED_CURRENCY_LOCALE_STORAGE_KEY = 'preferredCurrencyLocale';
 const EXCHANGE_RATES_STORAGE_KEY = 'exchangeRates';
 const LAST_UPDATED = 'LAST_UPDATED';
-export const GROUP_IO_BLUEWALLET = 'group.io.bluewallet.bluewallet';
+export const GROUP_IO_BLUEWALLET = 'group.ecurrency.org.ecrwallet';
 const BTC_PREFIX = 'BTC_';
+const ECR_PREFIX = 'ECR_';
 
 export interface CurrencyRate {
   LastUpdated: Date | null;
@@ -80,7 +81,7 @@ async function updateExchangeRate(): Promise<void> {
   try {
     const rate = await getFiatRate(preferredFiatCurrency.endPointKey);
     exchangeRates[LAST_UPDATED] = Date.now();
-    exchangeRates[BTC_PREFIX + preferredFiatCurrency.endPointKey] = rate;
+    exchangeRates[ECR_PREFIX + preferredFiatCurrency.endPointKey] = rate;
     exchangeRates.LAST_UPDATED_ERROR = false;
 
     try {
@@ -269,7 +270,7 @@ async function initCurrencyDaemon(clearLastUpdatedTime: boolean = false): Promis
 }
 
 function satoshiToLocalCurrency(satoshi: number, format: boolean = true): string {
-  const exchangeRateKey = BTC_PREFIX + preferredFiatCurrency.endPointKey;
+  const exchangeRateKey = ECR_PREFIX + preferredFiatCurrency.endPointKey;
   const exchangeRate = exchangeRates[exchangeRateKey];
 
   if (typeof exchangeRate !== 'number') {
@@ -325,7 +326,7 @@ async function mostRecentFetchedRate(): Promise<CurrencyRate> {
       currencyInformation = {};
     }
 
-    const rate = currencyInformation[BTC_PREFIX + preferredFiatCurrency.endPointKey];
+    const rate = currencyInformation[ECR_PREFIX + preferredFiatCurrency.endPointKey];
     return {
       LastUpdated: currencyInformation[LAST_UPDATED] ? new Date(currencyInformation[LAST_UPDATED]) : null,
       Rate: rate ? getCurrencyFormatter().format(rate) : '...',
@@ -356,6 +357,18 @@ function fiatToBTC(fiatFloat: number): string {
 
   const btcAmount = new BigNumber(fiatFloat).dividedBy(exchangeRate);
   return btcAmount.toFixed(8);
+}
+
+function fiatToECR(fiatFloat: number): string {
+  const exchangeRateKey = ECR_PREFIX + preferredFiatCurrency.endPointKey;
+  const exchangeRate = exchangeRates[exchangeRateKey];
+
+  if (typeof exchangeRate !== 'number') {
+    throw new Error('Exchange rate not available');
+  }
+
+  const ecrAmount = new BigNumber(fiatFloat).dividedBy(exchangeRate);
+  return ecrAmount.toFixed(8);
 }
 
 function getCurrencySymbol(): string {
@@ -399,4 +412,5 @@ export {
   setPreferredCurrency,
   updateExchangeRate,
   formatBTC,
+  fiatToECR,
 };

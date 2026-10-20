@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import assert from 'assert';
 
 import * as BlueElectrum from '../blue_modules/BlueElectrum';

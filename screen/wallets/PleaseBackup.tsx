@@ -1,7 +1,8 @@
 import { RouteProp, useFocusEffect, useLocale, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useEffect } from 'react';
-import { BackHandler, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { BackHandler, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import { useTheme } from '../../components/themes';
 import { useSettings } from '../../hooks/context/useSettings';
@@ -10,6 +11,8 @@ import loc from '../../loc';
 import { AddWalletStackParamList } from '../../navigation/AddWalletStack';
 import SeedWords from '../../components/SeedWords';
 import { useScreenProtect } from '../../hooks/useScreenProtect';
+import { BlueText, Styles } from '../../BlueComponents';
+import ArrowLeftIcon from '../../img/icons/ArrowLeftIcon.tsx';
 
 type RouteProps = RouteProp<AddWalletStackParamList, 'PleaseBackup'>;
 type NavigationProp = NativeStackNavigationProp<AddWalletStackParamList, 'PleaseBackup'>;
@@ -23,21 +26,51 @@ const PleaseBackup: React.FC = () => {
   const { colors } = useTheme();
   const { direction } = useLocale();
   const { enableScreenProtect, disableScreenProtect } = useScreenProtect();
+  const insets = useSafeAreaInsets();
 
   const stylesHook = StyleSheet.create({
     flex: {
       backgroundColor: colors.elevated,
+      paddingTop: Platform.select({ ios: 16, android: insets.top + 8 }),
     },
     pleaseText: {
       color: colors.foregroundColor,
       writingDirection: direction,
     },
+    button: {
+      backgroundColor: colors.lightButton,
+    },
   });
+
+  const Header = useMemo(() => {
+    return (
+      <View style={[styles.headerContainer, stylesHook.flex]}>
+        <TouchableOpacity
+          testID="NavigationCloseButton"
+          accessibilityRole="button"
+          style={[styles.buttonCross, stylesHook.button]}
+          onPress={navigation.goBack}
+        >
+          <View style={styles.iconContainer}>
+            <ArrowLeftIcon color={colors.foregroundColor} size={24} />
+          </View>
+        </TouchableOpacity>
+        <BlueText style={styles.title}>{loc.pleasebackup.title}</BlueText>
+        <View style={styles.emptyBlock} />
+      </View>
+    );
+  }, [colors, navigation.goBack, stylesHook]);
 
   const handleBackButton = useCallback(() => {
     navigation.getParent()?.goBack();
     return true;
   }, [navigation]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      header: () => Header,
+    });
+  }, [Header, navigation]);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackButton);
@@ -65,7 +98,7 @@ const PleaseBackup: React.FC = () => {
       contentInsetAdjustmentBehavior="automatic"
     >
       <View style={styles.please}>
-        <Text style={[styles.pleaseText, stylesHook.pleaseText]}>{loc.pleasebackup.text}</Text>
+        <BlueText style={[styles.pleaseText, stylesHook.pleaseText]}>{loc.pleasebackup.text}</BlueText>
       </View>
       <View style={styles.list}>
         <SeedWords seed={wallet.getSecret() ?? ''} />
@@ -101,8 +134,31 @@ const styles = StyleSheet.create({
   },
   pleaseText: {
     marginVertical: 16,
-    fontSize: 16,
-    fontWeight: '500',
+  },
+
+  // Header styles
+  emptyBlock: {
+    width: 38,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  buttonCross: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  iconContainer: {
+    alignSelf: 'center',
+  },
+  title: {
+    ...Styles.fonts['P3 Bold'],
   },
 });
 

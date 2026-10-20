@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, Keyboard, Platform, StyleSheet, Text } from 'react-native';
+import { Keyboard, Platform, StyleSheet, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import ToolTipMenu from './TooltipMenu';
 import loc from '../loc';
@@ -10,6 +10,8 @@ import RNQRGenerator from 'rn-qr-generator';
 import { CommonToolTipActions } from '../typings/CommonToolTipActions';
 import { useSettings } from '../hooks/context/useSettings';
 import { scanQrHelper } from '../helpers/scan-qr.ts';
+import ScanIcon from '../img/icons/ScanIcon.tsx';
+import { BlueText, Styles } from '../BlueComponents';
 
 interface AddressInputScanButtonProps {
   isLoading?: boolean;
@@ -28,15 +30,6 @@ export const AddressInputScanButton = ({
 }: AddressInputScanButtonProps) => {
   const { colors } = useTheme();
   const { isClipboardGetContentEnabled } = useSettings();
-
-  const stylesHook = StyleSheet.create({
-    scan: {
-      backgroundColor: colors.scanLabel,
-    },
-    scanText: {
-      color: colors.inverseForegroundColor,
-    },
-  });
 
   const toolTipOnPress = useCallback(async () => {
     if (beforePress) {
@@ -127,30 +120,23 @@ export const AddressInputScanButton = ({
     [onChangeText],
   );
 
-  const buttonStyle = useMemo(() => [styles.scan, stylesHook.scan], [stylesHook.scan]);
-
   return (
     <ToolTipMenu
       actions={actions}
       isButton
+      onPress={toolTipOnPress}
       onPressMenuItem={onMenuItemPressed}
       testID={testID}
       disabled={isLoading}
-      onPress={toolTipOnPress}
-      buttonStyle={type === 'default' ? buttonStyle : undefined}
       accessibilityLabel={loc.send.details_scan}
       accessibilityHint={loc.send.details_scan_hint}
     >
-      {type === 'default' ? (
-        <>
-          <Image source={require('../img/scan-white.png')} accessible={false} />
-          <Text style={[styles.scanText, stylesHook.scanText]} accessible={false}>
-            {loc.send.details_scan}
-          </Text>
-        </>
-      ) : (
-        <Text style={[styles.linkText, { color: colors.foregroundColor }]}>{loc.wallets.import_scan_qr}</Text>
-      )}
+      <View style={[styles.container, { backgroundColor: colors.lightButton }]}>
+        <ScanIcon color={colors.foregroundColor} />
+        <BlueText style={[styles.linkText, { color: colors.foregroundColor }]} accessible={false}>
+          {type === 'default' ? loc.send.details_scan : loc.wallets.import_scan_qr}
+        </BlueText>
+      </View>
     </ToolTipMenu>
   );
 };
@@ -158,21 +144,18 @@ export const AddressInputScanButton = ({
 AddressInputScanButton.displayName = 'AddressInputScanButton';
 
 const styles = StyleSheet.create({
-  scan: {
-    height: 36,
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    marginHorizontal: 4,
-  },
-  scanText: {
-    marginLeft: 4,
+    justifyContent: 'center',
+    gap: 10,
+    height: 48,
+    maxHeight: 48,
+    borderRadius: 24,
+    paddingHorizontal: 16,
   },
   linkText: {
+    ...Styles.fonts['P2 Bold'],
     textAlign: 'center',
-    fontSize: 16,
   },
 });

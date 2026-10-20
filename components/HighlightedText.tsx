@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useEffect, useState } from 'react';
-import { Text, Animated, StyleSheet, Platform, TextStyle } from 'react-native';
+import { Animated, StyleSheet, Platform, TextStyle } from 'react-native';
 import useBounceAnimation from '../hooks/useBounceAnimation';
+import { BlueText, Styles } from '../BlueComponents';
 
 interface HighlightedTextProps {
   text: string;
@@ -84,9 +85,9 @@ const HighlightedText: React.FC<HighlightedTextProps> = ({
       }
 
       return (
-        <Text key={`text-${index}-${queryKey}`} style={nonHighlightedStyle}>
+        <BlueText key={`text-${index}-${queryKey}`} style={nonHighlightedStyle}>
           {part.text}
-        </Text>
+        </BlueText>
       );
     },
     [queryKey, highlightedStyle, bounceAnim, nonHighlightedStyle],
@@ -151,22 +152,22 @@ const HighlightedText: React.FC<HighlightedTextProps> = ({
 
   if (textParts.length === 1 && !textParts[0].isMatch) {
     return (
-      <Text style={[styles.text, style]} numberOfLines={numberOfLines}>
+      <BlueText style={[styles.text, style]} numberOfLines={numberOfLines}>
         {text}
-      </Text>
+      </BlueText>
     );
   }
 
   return (
-    <Text numberOfLines={numberOfLines} style={[styles.text, style]} key={`highlighted-wrapper-${queryKey}`}>
+    <BlueText numberOfLines={numberOfLines} style={[styles.text, style]} key={`highlighted-wrapper-${queryKey}`}>
       {textParts.map(renderTextPart)}
-    </Text>
+    </BlueText>
   );
 };
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: 16,
+    ...Styles.fonts['P2 Regular'],
   },
   highlightContainer: {
     overflow: 'hidden',

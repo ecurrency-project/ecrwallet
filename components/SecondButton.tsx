@@ -1,8 +1,9 @@
 import React, { forwardRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { Icon } from '@rneui/themed';
 
 import { useTheme } from './themes';
+import { BlueText } from '../BlueComponents';
 
 type IconProps = {
   name: string;
@@ -22,8 +23,8 @@ type SecondButtonProps = {
 
 export const SecondButton = forwardRef<React.ElementRef<typeof TouchableOpacity>, SecondButtonProps>((props, ref) => {
   const { colors } = useTheme();
-  let backgroundColor = props.backgroundColor ? props.backgroundColor : colors.buttonGrayBackgroundColor;
-  let fontColor = colors.secondButtonTextColor;
+  let backgroundColor = props.backgroundColor ? props.backgroundColor : colors.lightButton;
+  let fontColor = colors.foregroundColor;
   if (props.disabled === true) {
     backgroundColor = colors.buttonDisabledBackgroundColor;
     fontColor = colors.buttonDisabledTextColor;
@@ -34,7 +35,7 @@ export const SecondButton = forwardRef<React.ElementRef<typeof TouchableOpacity>
   ) : (
     <View style={styles.view}>
       {props.icon && <Icon name={props.icon.name} type={props.icon.type} color={props.icon.color} />}
-      {props.title && <Text style={[styles.text, { color: fontColor }]}>{props.title}</Text>}
+      {props.title && <BlueText style={[styles.text, { color: fontColor }]}>{props.title}</BlueText>}
     </View>
   );
 
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
     minHeight: 45,
     height: 48,
     maxHeight: 48,
-    borderRadius: 7,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,

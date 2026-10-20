@@ -5,7 +5,6 @@ export const BlueDefaultTheme = {
   ...DefaultTheme,
   closeImage: require('../img/close.png'),
   barStyle: 'dark-content',
-  scanImage: require('../img/scan.png'),
   colors: {
     ...DefaultTheme.colors,
     borderWidth: 0.5,
@@ -22,7 +21,7 @@ export const BlueDefaultTheme = {
     inputBorderColor: '#d2d2d2',
     inputBackgroundColor: '#f5f5f5',
     alternativeTextColor: '#9aa0aa',
-    alternativeTextColor2: '#0f5cc0',
+    alternativeTextColor2: '#2363d0',
     buttonBlueBackgroundColor: '#ccddf9',
     buttonGrayBackgroundColor: '#EEEEEE',
     incomingBackgroundColor: '#d2f8d6',
@@ -71,6 +70,10 @@ export const BlueDefaultTheme = {
     receiveText: '#37C0A1',
     navigationBarColor: '#FFFFFF',
     androidRippleColor: '#CCCCCC',
+    historyIcon: '#000000',
+    cardSectionBackground: '#F9F9F9',
+    cardSectionHeaderBackground: '#F2F2F2',
+    cardBorderColor: 'rgba(0, 0, 0, 0.05)',
   },
 };
 
@@ -79,7 +82,6 @@ export type Theme = typeof BlueDefaultTheme;
 export const BlueDarkTheme: Theme = {
   ...DarkTheme,
   closeImage: require('../img/close-white.png'),
-  scanImage: require('../img/scan-white.png'),
   barStyle: 'light-content',
   colors: {
     ...BlueDefaultTheme.colors,
@@ -103,11 +105,11 @@ export const BlueDarkTheme: Theme = {
     modal: '#202020',
     formBorder: '#202020',
     inputBackgroundColor: '#262626',
-    modalButton: '#000000',
+    modalButton: '#1A1A1A',
     darkGray: '#3A3A3C',
     feeText: '#81868e',
     feeLabel: '#8EFFE5',
-    feeValue: '#000000',
+    feeValue: '#1A1A1A',
     feeActive: 'rgba(210,248,214,.2)',
     cta2: '#ffffff',
     outputValue: '#ffffff',
@@ -119,7 +121,7 @@ export const BlueDarkTheme: Theme = {
     scanLabel: 'rgba(255,255,255,.2)',
     labelText: '#ffffff',
     msSuccessBG: '#8EFFE5',
-    msSuccessCheck: '#000000',
+    msSuccessCheck: '#1A1A1A',
     newBlue: '#007AFF',
     redBG: '#5A4E4E',
     redText: '#FC6D6D',
@@ -129,6 +131,10 @@ export const BlueDarkTheme: Theme = {
     receiveText: '#37C0A1',
     navigationBarColor: '#3A3A3C',
     androidRippleColor: '#444444',
+    historyIcon: '#ffffff',
+    cardSectionBackground: '#1C1C1E',
+    cardSectionHeaderBackground: '#2C2C2E',
+    cardBorderColor: 'rgba(255, 255, 255, 0.08)',
   },
 };
 
@@ -138,13 +144,11 @@ export const useTheme = (): Theme => useThemeBase() as Theme;
 export class BlueCurrentTheme {
   static colors: Theme['colors'];
   static closeImage: Theme['closeImage'];
-  static scanImage: Theme['scanImage'];
 
   static updateColorScheme(): void {
     const isColorSchemeDark = Appearance.getColorScheme() === 'dark';
     BlueCurrentTheme.colors = isColorSchemeDark ? BlueDarkTheme.colors : BlueDefaultTheme.colors;
     BlueCurrentTheme.closeImage = isColorSchemeDark ? BlueDarkTheme.closeImage : BlueDefaultTheme.closeImage;
-    BlueCurrentTheme.scanImage = isColorSchemeDark ? BlueDarkTheme.scanImage : BlueDefaultTheme.scanImage;
   }
 }
 

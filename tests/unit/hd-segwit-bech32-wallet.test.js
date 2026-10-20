@@ -1,5 +1,5 @@
 import assert from 'assert';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 
 import { HDSegwitBech32Wallet } from '../../class';
 import { uint8ArrayToHex } from '../../blue_modules/uint8array-extras';

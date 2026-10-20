@@ -15,6 +15,9 @@
   "entropy": {
     "save": "ಉಳಿಸಿ"
   },
+  "send": {
+    "min_amount": "ಕನಿಷ್ಠ ಮೊತ್ತ {amount}"
+  },
   "settings": {
     "save": "ಉಳಿಸಿ"
   }

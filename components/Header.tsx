@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from './themes';
 import AddWalletButton from './AddWalletButton';
+import { BlueText, Styles } from '../BlueComponents';
 
 interface HeaderProps {
   leftText: string;
@@ -24,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ leftText, isDrawerList, onNewWal
 
   return (
     <View style={[styles.root, styleWithProps.root]}>
-      <Text style={[styles.text, styleWithProps.text]}>{leftText}</Text>
+      <BlueText style={[styles.text, styleWithProps.text]}>{leftText}</BlueText>
       {onNewWalletPress && <AddWalletButton onPress={onNewWalletPress} />}
     </View>
   );
@@ -35,12 +36,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 8,
   },
   text: {
+    ...Styles.fonts['P3 Bold'],
     textAlign: 'left',
-    fontWeight: 'bold',
     fontSize: 34,
+    lineHeight: 40,
   },
 });

@@ -62,7 +62,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Sahte şifreli depolama oluşturun",
     "create_password_explanation": "Sahte depolama şifreniz, ana depolama şifrenizle aynı olmamalıdır.",
-    "help": "Bazı koşullar altında, şifrenizi açıklamanız gerekebilir. Paralarınızı güvende tutmak için, BlueWallet başka bir şifre ile şifreli depolama alanı yaratabilir. Baskı altında, Bu şifreyi 3. bir tarafa söyleyebilirsiniz. Girilirse BlueWallet, yeni 'sahte' bir depolamanın kilidini açacaktır. Bu 3. şahıslara normal görünecektir, ancak paraların olduğu ana depolama alanınızı gizlice saklamaya devam edecektir.",
+    "help": "Bazı koşullar altında, şifrenizi açıklamanız gerekebilir. Paralarınızı güvende tutmak için, ECRWallet başka bir şifre ile şifreli depolama alanı yaratabilir. Baskı altında, Bu şifreyi 3. bir tarafa söyleyebilirsiniz. Girilirse ECRWallet, yeni 'sahte' bir depolamanın kilidini açacaktır. Bu 3. şahıslara normal görünecektir, ancak paraların olduğu ana depolama alanınızı gizlice saklamaya devam edecektir.",
     "help2": "Yeni depolama alanı tamamen işlevsel olacak ve ufak bir miktar tutarsanız daha inanılır görünecektir.",
     "password_should_not_match": "Sahte depolama şifreniz, ana depolama şifrenizle aynı olmamalıdır",
     "title": "Makul Ret"
@@ -106,6 +106,7 @@
     "details_adv_import": "İşlemi dışarı aktar",
     "details_amount_field_is_not_valid": "Miktar alanı geçerli değil",
     "details_amount_field_is_less_than_minimum_amount_sat": "Belirlediğiniz tutar çok az. Lütfen 500 sat'tan daha büyük bir tutar giriniz.",
+    "min_amount": "Minimum tutar {amount}",
     "details_create": "Oluştur",
     "details_error_decode": "Bitcoin adresi tanımlanamadı",
     "details_fee_field_is_not_valid": "Ücret miktarı geçerli değil.",
@@ -142,7 +143,7 @@
     "about": "Hakkında",
     "about_sm_discord": "Discord Sunucusu",
     "about_sm_telegram": "Telegram Kanalı",
-    "about_sm_twitter": "Bizi Twitter'da takip edin",
+    "about_sm_twitter": "Bizi X(Twitter)'da takip edin",
     "biometrics": "Biyometrikler",
     "currency": "Para Birimi",
     "header": "ayarlar",
@@ -158,6 +159,7 @@
     "total_balance": "Bakiye"
   },
   "transactions": {
+    "block_height": "Blok yüksekliği",
     "cpfp_create": "Oluştur",
     "details_copy": "Kopya",
     "details_from": "Girdi",
@@ -223,7 +225,8 @@
   "units": {
     "BTC": "BTC",
     "MAX": "Maks",
-    "sats": "sat"
+    "sats": "sat",
+    "ECR": "ECR"
   },
   "addresses": {
     "sign_placeholder_address": "Adres",

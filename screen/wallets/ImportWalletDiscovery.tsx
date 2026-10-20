@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { ActivityIndicator, FlatList, LayoutAnimation, Platform, StyleSheet, UIManager, View } from 'react-native';
+import { ActivityIndicator, FlatList, LayoutAnimation, Platform, StyleSheet, TouchableOpacity, UIManager, View } from 'react-native';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueButtonLink, BlueFormLabel, BlueText } from '../../BlueComponents';
-import { HDSegwitBech32Wallet, WatchOnlyWallet } from '../../class';
+import { BlueFormLabel, BlueText, Styles } from '../../BlueComponents';
+import { WatchOnlyWallet } from '../../class';
 import startImport, { TImport } from '../../class/wallet-import';
 import presentAlert from '../../components/Alert';
 import Button from '../../components/Button';
@@ -20,6 +20,8 @@ import { useSettings } from '../../hooks/context/useSettings';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import { useScreenProtect } from '../../hooks/useScreenProtect';
 import { BlueSpacing10, BlueSpacing20, BlueSpacing40 } from '../../components/BlueSpacing';
+import ArrowLeftIcon from '../../img/icons/ArrowLeftIcon.tsx';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type RouteProps = RouteProp<AddWalletStackParamList, 'ImportWalletDiscovery'>;
 type NavigationProp = NativeStackNavigationProp<AddWalletStackParamList, 'ImportWalletDiscovery'>;
@@ -41,6 +43,7 @@ const ImportWalletDiscovery: React.FC = () => {
   const { importText, askPassphrase, searchAccounts } = route.params;
   const { isElectrumDisabled, isPrivacyBlurEnabled } = useSettings();
   const { enableScreenProtect, disableScreenProtect } = useScreenProtect();
+  const insets = useSafeAreaInsets();
   const task = useRef<TImport | null>(null);
   const { addAndSaveWallet } = useStorage();
   const [loading, setLoading] = useState<boolean>(true);
@@ -49,18 +52,17 @@ const ImportWalletDiscovery: React.FC = () => {
   const [selected, setSelected] = useState<number>(0);
   const [progress, setProgress] = useState<string | undefined>();
   const importing = useRef<boolean>(false);
-  const bip39 = useMemo(() => {
-    const hd = new HDSegwitBech32Wallet();
-    hd.setSecret(importText);
-    return hd.validateMnemonic();
-  }, [importText]);
 
   const stylesHook = StyleSheet.create({
     root: {
       backgroundColor: colors.elevated,
+      paddingTop: Platform.select({ ios: 16, android: insets.top + 8 }),
     },
     center: {
       backgroundColor: colors.elevated,
+    },
+    button: {
+      backgroundColor: colors.lightButton,
     },
   });
 
@@ -78,6 +80,25 @@ const ImportWalletDiscovery: React.FC = () => {
     if (wallets.length === 0) return;
     saveWallet(wallets[selected].wallet);
   };
+
+  const Header = useMemo(() => {
+    return (
+      <View style={[styles.headerContainer, stylesHook.root]}>
+        <TouchableOpacity
+          testID="NavigationCloseButton"
+          accessibilityRole="button"
+          style={[styles.buttonCross, stylesHook.button]}
+          onPress={navigation.goBack}
+        >
+          <View style={styles.iconContainer}>
+            <ArrowLeftIcon color={colors.foregroundColor} size={24} />
+          </View>
+        </TouchableOpacity>
+        <BlueText style={styles.title}>{loc.wallets.import_discovery_title}</BlueText>
+        <View style={styles.emptyBlock} />
+      </View>
+    );
+  }, [colors.foregroundColor, navigation.goBack, stylesHook.button, stylesHook.root]);
 
   useEffect(() => {
     const onProgress = (data: string) => setProgress(data);
@@ -150,10 +171,11 @@ const ImportWalletDiscovery: React.FC = () => {
     };
   }, [isPrivacyBlurEnabled, enableScreenProtect, disableScreenProtect]);
 
-  const handleCustomDerivation = () => {
-    task.current?.stop();
-    navigation.navigate('ImportCustomDerivationPath', { importText, password });
-  };
+  useEffect(() => {
+    navigation.setOptions({
+      header: () => Header,
+    });
+  }, [Header, navigation]);
 
   const renderItem = ({ item, index }: { item: WalletEntry; index: number }) => (
     <WalletToImport
@@ -225,13 +247,6 @@ const ImportWalletDiscovery: React.FC = () => {
         contentInsetAdjustmentBehavior="always"
       />
       <View style={[styles.center, stylesHook.center]}>
-        {bip39 && (
-          <BlueButtonLink
-            title={loc.wallets.import_discovery_derivation}
-            testID="CustomDerivationPathButton"
-            onPress={handleCustomDerivation}
-          />
-        )}
         <BlueSpacing10 />
         <View style={styles.buttonContainer}>
           <Button disabled={wallets?.length === 0} title={loc.wallets.import_do_import} onPress={handleSave} />
@@ -260,6 +275,32 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // Header styles
+  emptyBlock: {
+    width: 38,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    paddingTop: 16,
+  },
+  buttonCross: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  iconContainer: {
+    alignSelf: 'center',
+  },
+  title: {
+    ...Styles.fonts['P3 Bold'],
   },
 });
 

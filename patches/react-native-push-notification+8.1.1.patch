@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-push-notification/android/build.gradle b/node_modules/react-native-push-notification/android/build.gradle
+index d6019f6..a9408b2 100644
+--- a/node_modules/react-native-push-notification/android/build.gradle
++++ b/node_modules/react-native-push-notification/android/build.gradle
+@@ -1,19 +1,7 @@
+-buildscript {
+-    repositories {
+-        mavenCentral()
+-        google()
+-        jcenter()
+-    }
+-    dependencies {
+-        classpath 'com.android.tools.build:gradle:3.2.0'
+-    }
+-}
+-
+ allprojects {
+     repositories {
+         mavenCentral()
+         google()
+-        jcenter()
+     }
+ }
+ 

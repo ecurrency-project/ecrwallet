@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-secure-key-store/android/build.gradle b/node_modules/react-native-secure-key-store/android/build.gradle
+index 335a1de..0fc366a 100644
+--- a/node_modules/react-native-secure-key-store/android/build.gradle
++++ b/node_modules/react-native-secure-key-store/android/build.gradle
+@@ -11,10 +11,8 @@ buildscript {
+         repositories {
+             google()
+             mavenCentral()
+-            // JCenter is going read-only repository indefinitely
+-            // Gradle is discouraging jcenter to avoid to avoid build issues - pipeline
++            // jcenter() removed: the method no longer exists in Gradle 9+
+             // ref: https://blog.gradle.org/jcenter-shutdown
+-            jcenter()
+         }
+ 
+         dependencies {
+@@ -43,7 +41,6 @@ android {
+ repositories {
+     google()
+     mavenCentral()
+-    jcenter()
+ }
+ 
+ dependencies {

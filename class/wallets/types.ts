@@ -1,4 +1,4 @@
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import { CoinSelectOutput, CoinSelectReturnInput, CoinSelectUtxo } from 'coinselect';
 
 import { BitcoinUnit } from '../../models/bitcoinUnits';
@@ -17,6 +17,8 @@ import { SegwitP2SHWallet } from './segwit-p2sh-wallet';
 import { SLIP39LegacyP2PKHWallet, SLIP39SegwitBech32Wallet, SLIP39SegwitP2SHWallet } from './slip39-wallets';
 import { WatchOnlyWallet } from './watch-only-wallet';
 import { TaprootWallet } from './taproot-wallet.ts';
+import { ECurrencyWallet } from './ecurrency-wallet';
+import { HDECurrencyWallet } from './hd-ecurrency-wallet';
 
 export type Utxo = {
   // Returned by BlueElectrum
@@ -59,25 +61,17 @@ export type CreateTransactionResult = {
 
 type TransactionInput = {
   txid: string;
-  vout: number;
-  scriptSig: { asm: string; hex: string };
-  txinwitness: string[];
-  sequence: number;
+  redeem_script: string;
+  siglist: string[];
+  num: number;
   addresses?: string[];
-  address?: string;
   value?: number;
 };
 
 export type TransactionOutput = {
   value: number;
-  n: number;
-  scriptPubKey: {
-    asm: string;
-    hex: string;
-    reqSigs: number;
-    type: string;
-    addresses: string[];
-  };
+  address: string;
+  data: string;
 };
 
 export interface DecodedInvoice {
@@ -114,16 +108,11 @@ export type LightningTransaction = {
 export type Transaction = {
   txid: string;
   hash: string;
-  version: number;
   size: number;
-  vsize: number;
-  weight: number;
-  locktime: number;
   inputs: TransactionInput[];
   outputs: TransactionOutput[];
   blockhash: string;
   confirmations: number;
-  time: number;
   blocktime: number;
   timestamp: number; // seconds, not milliseconds
   value?: number;
@@ -160,6 +149,8 @@ export type TWallet =
   | SegwitBech32Wallet
   | SegwitP2SHWallet
   | TaprootWallet
-  | WatchOnlyWallet;
+  | WatchOnlyWallet
+  | ECurrencyWallet
+  | HDECurrencyWallet;
 
 export type THDWalletForWatchOnly = HDSegwitBech32Wallet | HDSegwitP2SHWallet | HDLegacyP2PKHWallet;

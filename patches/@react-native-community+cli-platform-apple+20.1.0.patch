@@ -1,0 +1,38 @@
+diff --git a/node_modules/@react-native-community/cli-platform-apple/build/commands/runCommand/runOnSimulator.js b/node_modules/@react-native-community/cli-platform-apple/build/commands/runCommand/runOnSimulator.js
+index 4581437..f18602d 100644
+--- a/node_modules/@react-native-community/cli-platform-apple/build/commands/runCommand/runOnSimulator.js
++++ b/node_modules/@react-native-community/cli-platform-apple/build/commands/runCommand/runOnSimulator.js
+@@ -38,14 +38,32 @@ async function runOnSimulator(xcodeProject, platform, mode, scheme, args, simula
+    * We also pass it `-CurrentDeviceUDID` so that when we launch it for the first time,
+    * it will not boot the "default" device, but the one we set. If the app is already running,
+    * this flag has no effect.
++   *
++   * Xcode 27 replaced `Simulator.app` with `DeviceHub.app`, which also lives outside of
++   * the `Developer` directory, so we look up both locations and skip the step entirely
++   * when neither is present instead of crashing the run.
+    */
+   const activeDeveloperDir = _child_process().default.execFileSync('xcode-select', ['-p'], {
+     encoding: 'utf8'
+   }).trim();
+-  _child_process().default.execFileSync('open', [`${activeDeveloperDir}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', simulator.udid]);
++  const isDeviceHub = appPath => appPath.endsWith('DeviceHub.app');
++  const simulatorApp = [`${activeDeveloperDir}/Applications/Simulator.app`, require('path').resolve(activeDeveloperDir, '..', 'Applications', 'DeviceHub.app')].find(appPath => require('fs').existsSync(appPath));
++  if (!simulatorApp) {
++    _cliTools().logger.warn('Could not find Simulator.app nor DeviceHub.app in the active Xcode. The simulator UI will not be brought to the front.');
++  } else {
++    _child_process().default.execFileSync('open', isDeviceHub(simulatorApp) ? [simulatorApp] : [simulatorApp, '--args', '-CurrentDeviceUDID', simulator.udid]);
++  }
+   if (simulator.state !== 'Booted') {
+     bootSimulator(simulator);
+   }
++
++  /**
++   * Device Hub does not accept `-CurrentDeviceUDID`, so the device we booted has to be
++   * focused through its deep link once it is up.
++   */
++  if (simulatorApp && isDeviceHub(simulatorApp)) {
++    _child_process().default.execFileSync('open', [`devices://device/open?id=${simulator.udid}`]);
++  }
+   let buildOutput;
+   if (!binaryPath) {
+     buildOutput = await (0, _buildProject.buildProject)(xcodeProject, platform, simulator.udid, mode, scheme, args);

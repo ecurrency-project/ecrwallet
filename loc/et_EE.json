@@ -35,6 +35,7 @@
     "network": "Võrgu viga"
   },
   "send": {
+    "min_amount": "Miinimumsumma on {amount}",
     "broadcastError": "Viga",
     "broadcastSuccess": "Toiming õnnestus",
     "create_to": "Sihtkoht"

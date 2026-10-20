@@ -100,6 +100,7 @@
     "details_adv_import": "นำเข้าธุรกรรม",
     "details_amount_field_is_not_valid": "จำนวนเงินไม่ถูกต้อง",
     "details_amount_field_is_less_than_minimum_amount_sat": "ท่านใส่จำนวนเงินน้อยเกินไป กรุณาใส่มากกว่า 500 แซท (sat)",
+    "min_amount": "จำนวนขั้นต่ำคือ {amount}",
     "details_create": "สร้าง",
     "details_fee_field_is_not_valid": "ค่าธรรมเนียมไม่ถูกต้อง",
     "details_next": "ถัดไป",
@@ -136,13 +137,13 @@
   "settings": {
     "about": "เกี่ยวกับ",
     "about_backup": "ท่านควรบันทึกคีย์ของท่านเสมอ",
-    "about_free": "BlueWallet คือโปรเจ็คโอเพนซอร์ส ไม่มีการคิดค่าใช้จ่าย สร้างโดยผู้ใช้บิตคอยน์",
+    "about_free": "ECRWallet คือโปรเจ็คโอเพนซอร์ส ไม่มีการคิดค่าใช้จ่าย สร้างโดยผู้ใช้บิตคอยน์",
     "about_release_notes": "บันทึกของโปรแกรมนี้",
     "about_review": "กรุณาแสดงความเห็น",
     "about_selftest": "ทำการทดสอบ",
     "about_sm_github": "กิตฮับ",
     "about_sm_telegram": "เทเลแกรมแช็ท",
-    "about_sm_twitter": "ติดตามเราในทวิตเตอร์",
+    "about_sm_twitter": "ติดตามเราใน X(Twitter)",
     "biometrics": "Biometrics",
     "biom_conf_identity": "กรุณายืนยันตัวตนของท่าน",
     "currency": "สกุลเงิน",
@@ -180,6 +181,7 @@
     "total_balance": "ยอดรวม"
   },
   "transactions": {
+    "block_height": "ความสูงของบล็อก",
     "cancel_no": "ธุรกรรมนี้ไม่สามารทเปลี่ยนแทนได้",
     "cancel_title": "ยกเลิกธุรกรรม (RBF)",
     "confirmations_lowercase": "{confirmations} ยืนยัน",
@@ -193,6 +195,7 @@
     "details_inputs": "อินพุท",
     "details_outputs": "เอ้าพุท",
     "details_received": "ได้รับแล้ว",
+    "details_sent": "ส่งแล้ว",
     "details_title": "ธุรกรรม",
     "details_to": "เอ้าพุท",
     "pending": "รอดำเนินการ",
@@ -205,7 +208,7 @@
   },
   "wallets": {
     "add_bitcoin": "บิตคอยน์",
-    "add_bitcoin_explain": "กระเป๋าเงินบิตคอยน์ที่เรียบง่ายและทรงพลัง",
+    "add_ecurrency_explain": "กระเป๋าเงินบิตคอยน์ที่เรียบง่ายและทรงพลัง",
     "add_create": "สร้าง",
     "total_balance": "ยอดรวม",
     "add_entropy": "เอนโทรปี",
@@ -250,7 +253,7 @@
     "list_title": "กระเป๋าสตางค์",
     "list_tryagain": "พยายามอีกครั้ง",
     "select_no_bitcoin": "ขณะนี้ไม่มีกระเป๋าสตางค์บิตคอยน์",
-    "select_no_bitcoin_exp": "ก่อนที่จะเติมเงินเข้ากระเป๋าสตางค์ไลท์นิง ท่านต้องมีกระเป๋าสตางค์บิตคอยน์",
+    "select_no_bitcoin_exp": "โปรดสร้างหรือนำเข้าหนึ่งอัน",
     "select_wallet": "เลือกกระเป๋าสตางค์",
     "xpub_copiedToClipboard": "ก๊อปปี้ไปที่คลิปบอร์ดแล้ว.",
     "pull_to_refresh": "ดึงเพื่อรีเฟรช",
@@ -317,7 +320,8 @@
   },
   "units": {
     "BTC": "บิตคอยน์",
-    "sats": "แซท"
+    "sats": "แซท",
+    "ECR": "ECR"
   },
   "addresses": {
     "sign_placeholder_address": "แอดเดรส",

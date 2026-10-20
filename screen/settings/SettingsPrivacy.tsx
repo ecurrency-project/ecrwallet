@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { Platform, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { openSettings } from 'react-native-permissions';
-import A from '../../blue_modules/analytics';
 import { Header } from '../../components/Header';
 import ListItem, { PressableWrapper } from '../../components/ListItem';
 import { useTheme } from '../../components/themes';
@@ -11,6 +10,8 @@ import { useSettings } from '../../hooks/context/useSettings';
 import { isDesktop } from '../../blue_modules/environment';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
+import NavigationItem from '../../components/NavigationItem.tsx';
+import { BlueText, Styles } from '../../BlueComponents';
 
 enum SettingsPrivacySection {
   None,
@@ -63,7 +64,6 @@ const SettingsPrivacy: React.FC = () => {
     setIsLoading(SettingsPrivacySection.All);
     try {
       setDoNotTrackStorage(value);
-      A.setOptOut(value);
     } catch (e) {
       console.debug('onDoNotTrackValueChange catch', e);
     }
@@ -127,7 +127,8 @@ const SettingsPrivacy: React.FC = () => {
           disabled: isLoading === SettingsPrivacySection.All,
           testID: 'ClipboardSwitch',
         }}
-        subtitle={loc.settings.privacy_clipboard_explanation}
+        // subtitle={loc.settings.privacy_clipboard_explanation}
+        subtitle={<BlueText style={styles.subtitleText}>{loc.settings.privacy_clipboard_explanation}</BlueText>}
       />
 
       <ListItem
@@ -141,8 +142,8 @@ const SettingsPrivacy: React.FC = () => {
         }}
         subtitle={
           <>
-            <Text style={styles.subtitleText}>{loc.settings.privacy_quickactions_explanation}</Text>
-            {storageIsEncrypted && <Text style={styles.subtitleText}>{loc.settings.encrypted_feature_disabled}</Text>}
+            <BlueText style={styles.subtitleText}>{loc.settings.privacy_quickactions_explanation}</BlueText>
+            {storageIsEncrypted && <BlueText style={styles.subtitleText}>{loc.settings.encrypted_feature_disabled}</BlueText>}
           </>
         }
       />
@@ -156,7 +157,7 @@ const SettingsPrivacy: React.FC = () => {
           disabled: isLoading === SettingsPrivacySection.All || wallets.length < 2,
           testID: 'TotalBalanceSwitch',
         }}
-        subtitle={<Text style={styles.subtitleText}>{loc.total_balance_view.explanation}</Text>}
+        subtitle={<BlueText style={styles.subtitleText}>{loc.total_balance_view.explanation}</BlueText>}
       />
 
       {!isDesktop && (
@@ -168,7 +169,7 @@ const SettingsPrivacy: React.FC = () => {
             value: !isPrivacyBlurEnabled,
             disabled: isLoading === SettingsPrivacySection.All,
           }}
-          subtitle={<Text style={styles.subtitleText}>{loc.settings.privacy_temporary_screenshots_instructions}</Text>}
+          subtitle={<BlueText style={styles.subtitleText}>{loc.settings.privacy_temporary_screenshots_instructions}</BlueText>}
         />
       )}
 
@@ -180,7 +181,7 @@ const SettingsPrivacy: React.FC = () => {
           value: isDoNotTrackEnabled,
           disabled: isLoading === SettingsPrivacySection.All,
         }}
-        subtitle={<Text style={styles.subtitleText}>{loc.settings.privacy_do_not_track_explanation}</Text>}
+        subtitle={<BlueText style={styles.subtitleText}>{loc.settings.privacy_do_not_track_explanation}</BlueText>}
       />
 
       {Platform.OS === 'ios' && (
@@ -197,15 +198,15 @@ const SettingsPrivacy: React.FC = () => {
             }}
             subtitle={
               <>
-                <Text style={styles.subtitleText}>{loc.settings.total_balance_explanation}</Text>
-                {storageIsEncrypted && <Text style={styles.subtitleText}>{loc.settings.encrypted_feature_disabled}</Text>}
+                <BlueText style={styles.subtitleText}>{loc.settings.total_balance_explanation}</BlueText>
+                {storageIsEncrypted && <BlueText style={styles.subtitleText}>{loc.settings.encrypted_feature_disabled}</BlueText>}
               </>
             }
           />
         </>
       )}
 
-      <ListItem title={loc.settings.privacy_system_settings} chevron onPress={openApplicationSettings} testID="PrivacySystemSettings" />
+      <NavigationItem title={loc.settings.privacy_system_settings} onPress={openApplicationSettings} />
     </SafeAreaScrollView>
   );
 };
@@ -213,13 +214,14 @@ const SettingsPrivacy: React.FC = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    paddingHorizontal: 16,
   },
 
   headerContainer: {
     paddingVertical: 16,
   },
   subtitleText: {
-    fontSize: 14,
+    ...Styles.fonts['P2 Regular'],
     marginTop: 5,
   },
 });

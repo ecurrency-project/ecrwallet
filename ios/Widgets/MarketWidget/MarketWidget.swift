@@ -87,7 +87,11 @@ struct MarketWidgetEntryView: View {
   
   var body: some View {
     VStack(content: {
-      MarketStack.containerBackground(Color.widgetBackground, for: .widget)
+      if #available(watchOS 10.0, iOSApplicationExtension 17.0, *) {
+          MarketStack.containerBackground(Color.widgetBackground, for: .widget)
+      } else {
+          MarketStack.background(Color.widgetBackground)
+      }
     })
   }
 }
@@ -100,13 +104,13 @@ struct MarketWidget: Widget {
             MarketWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Market")
-        .description("View the current market information.").supportedFamilies([.systemSmall])
+        .description("View the current market information.").supportedFamilies([.accessoryRectangular])
     }
 }
 
 struct MarketWidget_Previews: PreviewProvider {
     static var previews: some View {
         MarketWidgetEntryView(entry: MarketWidgetEntry(date: Date(), marketData: MarketData(nextBlock: "26", sats: "9,134", price: "$10,000", rate: 0)))
-            .previewContext(WidgetPreviewContext(family: .systemSmall))
+            .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
     }
 }

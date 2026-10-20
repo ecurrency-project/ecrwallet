@@ -1,85 +1,105 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import React, { useLayoutEffect, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, BackHandler, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Icon } from '@rneui/themed';
+import { BackHandler, InteractionManager, Linking, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueCard, BlueText } from '../../BlueComponents';
-import { HDSegwitBech32Transaction, HDSegwitBech32Wallet } from '../../class';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
+import { ECurrencyWallet } from '../../class';
 import { Transaction, TWallet } from '../../class/wallets/types';
-import Button from '../../components/Button';
-import HandOffComponent from '../../components/HandOffComponent';
-import TransactionIncomingIcon from '../../components/icons/TransactionIncomingIcon';
-import TransactionOutgoingIcon from '../../components/icons/TransactionOutgoingIcon';
-import TransactionPendingIcon from '../../components/icons/TransactionPendingIcon';
-import SafeArea from '../../components/SafeArea';
 import { useTheme } from '../../components/themes';
-import loc, { formatBalanceWithoutSuffix } from '../../loc';
+import loc, { formatBalanceWithoutSuffix, formatEcrValueByUnit } from '../../loc';
 import { BitcoinUnit } from '../../models/bitcoinUnits';
 import { useStorage } from '../../hooks/context/useStorage';
-import { HandOffActivityType } from '../../components/types';
-import HeaderRightButton from '../../components/HeaderRightButton';
 import { DetailViewStackParamList } from '../../navigation/DetailViewStackParamList';
-import { useSettings } from '../../hooks/context/useSettings';
 import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
-import { BlueSpacing10, BlueSpacing20 } from '../../components/BlueSpacing';
+import { BlueSpacing20 } from '../../components/BlueSpacing';
 import { BlueLoading } from '../../components/BlueLoading';
-
-enum ButtonStatus {
-  Possible,
-  Unknown,
-  NotPossible,
-}
+import ArrowLeftIcon from '../../img/icons/ArrowLeftIcon.tsx';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { navigationRef } from '../../NavigationService.ts';
+import dayjs from 'dayjs';
+import ToolTipMenu from '../../components/TooltipMenu.tsx';
+import Clipboard from '@react-native-clipboard/clipboard';
+import { useSettings } from '../../hooks/context/useSettings.ts';
+import presentAlert from '../../components/Alert.ts';
+import assert from 'assert';
+import SafeAreaScrollView from '../../components/SafeAreaScrollView.tsx';
+import { HandOffActivityType } from '../../components/types.ts';
+import HandOffComponent from '../../components/HandOffComponent.tsx';
+import CopyIcon from '../../img/icons/CopyIcon.tsx';
+import ThreeDotsIcon from '../../img/icons/ThreeDotsIcon.tsx';
+import ArrowUpRightIcon from '../../img/icons/ArrowUpRightIcon.tsx';
+import ArrowDownLeftIcon from '../../img/icons/ArrowDownLeftIcon.tsx';
 
 type RouteProps = RouteProp<DetailViewStackParamList, 'TransactionStatus'>;
 type NavigationProps = NativeStackNavigationProp<DetailViewStackParamList, 'TransactionStatus'>;
 
 enum ActionType {
-  SetCPFPPossible,
-  SetRBFBumpFeePossible,
-  SetRBFCancelPossible,
   SetTransaction,
   SetLoading,
   SetEta,
   SetIntervalMs,
-  SetAllButtonStatus,
   SetWallet,
   SetLoadingError,
 }
 
 interface State {
-  isCPFPPossible: ButtonStatus;
-  isRBFBumpFeePossible: ButtonStatus;
-  isRBFCancelPossible: ButtonStatus;
   tx: any;
   isLoading: boolean;
   eta: string;
   intervalMs: number;
-  wallet: TWallet | null;
+  wallet: ECurrencyWallet | null;
   loadingError: boolean;
 }
 
 const initialState: State = {
-  isCPFPPossible: ButtonStatus.Unknown,
-  isRBFBumpFeePossible: ButtonStatus.Unknown,
-  isRBFCancelPossible: ButtonStatus.Unknown,
   tx: undefined,
-  isLoading: true,
+  isLoading: false,
   eta: '',
   intervalMs: 1000,
   wallet: null,
   loadingError: false,
 };
 
+const actionKeys = {
+  CopyToClipboard: 'copyToClipboard',
+  GoToWallet: 'goToWallet',
+};
+
+const actionIcons = {
+  Clipboard: {
+    iconValue: 'doc.on.doc',
+  },
+  GoToWallet: {
+    iconValue: 'wallet.pass',
+  },
+};
+
+function onlyUnique(value: any, index: number, self: any[]) {
+  return self.indexOf(value) === index;
+}
+
+function arrDiff(a1: any[], a2: any[]) {
+  const ret = [];
+  for (const v of a2) {
+    if (a1.indexOf(v) === -1) {
+      ret.push(v);
+    }
+  }
+  return ret;
+}
+
+const toolTipMenuActions = [
+  {
+    id: actionKeys.CopyToClipboard,
+    text: loc.transactions.copy_link,
+    icon: actionIcons.Clipboard,
+  },
+];
+
 const reducer = (state: State, action: { type: ActionType; payload?: any }): State => {
   switch (action.type) {
-    case ActionType.SetCPFPPossible:
-      return { ...state, isCPFPPossible: action.payload };
-    case ActionType.SetRBFBumpFeePossible:
-      return { ...state, isRBFBumpFeePossible: action.payload };
-    case ActionType.SetRBFCancelPossible:
-      return { ...state, isRBFCancelPossible: action.payload };
     case ActionType.SetTransaction:
       return { ...state, tx: action.payload };
     case ActionType.SetLoading:
@@ -88,8 +108,6 @@ const reducer = (state: State, action: { type: ActionType; payload?: any }): Sta
       return { ...state, eta: action.payload };
     case ActionType.SetIntervalMs:
       return { ...state, intervalMs: action.payload };
-    case ActionType.SetAllButtonStatus:
-      return { ...state, isCPFPPossible: action.payload, isRBFBumpFeePossible: action.payload, isRBFCancelPossible: action.payload };
     case ActionType.SetWallet:
       return { ...state, wallet: action.payload };
     case ActionType.SetLoadingError:
@@ -110,22 +128,51 @@ type TransactionStatusProps = {
 
 const TransactionStatus: React.FC<TransactionStatusProps> = ({ transaction, txid }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { isCPFPPossible, isRBFBumpFeePossible, isRBFCancelPossible, tx, isLoading, eta, intervalMs, wallet, loadingError } = state;
-  const { wallets, txMetadata, counterpartyMetadata, fetchAndSaveWalletTransactions } = useStorage();
+  const { tx, isLoading, eta, intervalMs, wallet, loadingError } = state;
+  const { wallets, txMetadata, fetchAndSaveWalletTransactions, counterpartyMetadata, getTransactions, saveToDisk } = useStorage();
+  const { selectedBlockExplorer } = useSettings();
   const { hash, walletID } = useRoute<RouteProps>().params;
   const { navigate, setOptions, goBack } = useExtendedNavigation<NavigationProps>();
   const { colors } = useTheme();
-  const { selectedBlockExplorer } = useSettings();
-  const fetchTxInterval = useRef<NodeJS.Timeout>();
+  const insets = useSafeAreaInsets();
+  const fetchTxInterval = useRef<NodeJS.Timeout>(undefined);
+  const [memo, setMemo] = useState<string>('');
+  const [counterpartyLabel, setCounterpartyLabel] = useState<string>('');
+  const [isCounterpartyLabelVisible, setIsCounterpartyLabelVisible] = useState<boolean>(false);
+  const [from, setFrom] = useState<string[]>([]);
+  const [to, setTo] = useState<string[]>([]);
+  const [paymentCode, setPaymentCode] = useState<string>('');
+
   const stylesHook = StyleSheet.create({
-    value: {
-      color: colors.alternativeTextColor2,
-    },
-    valueUnit: {
-      color: colors.alternativeTextColor2,
-    },
     iconRoot: {
-      backgroundColor: colors.success,
+      backgroundColor: colors.inputBackgroundColor,
+    },
+    header: {
+      backgroundColor: colors.elevated,
+    },
+    button: {
+      backgroundColor: colors.lightButton,
+    },
+    memoTextInput: {
+      borderColor: colors.formBorder,
+      borderBottomColor: colors.formBorder,
+      color: colors.foregroundColor,
+    },
+    greyButton: {
+      backgroundColor: colors.lightButton,
+    },
+    Link: {
+      color: colors.buttonTextColor,
+    },
+    line: {
+      height: 1,
+      backgroundColor: colors.inputBackgroundColor,
+    },
+    blockHash: {
+      padding: 8,
+      gap: 12,
+      backgroundColor: colors.inputBackgroundColor,
+      borderRadius: 8,
     },
   });
 
@@ -141,51 +188,87 @@ const TransactionStatus: React.FC<TransactionStatusProps> = ({ transaction, txid
     dispatch({ type: ActionType.SetEta, payload: value });
   };
 
-  const setAllButtonStatus = (status: ButtonStatus) => {
-    dispatch({ type: ActionType.SetAllButtonStatus, payload: status });
+  const onPressBack = () => {
+    navigationRef.goBack();
   };
 
-  const setIsLoading = (value: boolean) => {
-    dispatch({ type: ActionType.SetLoading, payload: value });
-  };
-
-  const setIsCPFPPossible = (status: ButtonStatus) => {
-    dispatch({ type: ActionType.SetCPFPPossible, payload: status });
-  };
-
-  const setIsRBFBumpFeePossible = (status: ButtonStatus) => {
-    dispatch({ type: ActionType.SetRBFBumpFeePossible, payload: status });
-  };
-
-  const setIsRBFCancelPossible = (status: ButtonStatus) => {
-    dispatch({ type: ActionType.SetRBFCancelPossible, payload: status });
-  };
-
-  const navigateToTransactionDetails = useCallback(() => {
-    if (walletID && tx && tx.hash) {
-      navigate('TransactionDetails', { tx, hash, walletID });
-    } else {
-      console.error('Cannot navigate to TransactionDetails: Missing tx or hash.');
-    }
-  }, [hash, navigate, tx, walletID]);
-
-  const DetailsButton = useMemo(
+  const Header = useMemo(
     () => (
-      <HeaderRightButton
-        testID="TransactionDetailsButton"
-        disabled={loadingError || isLoading || !tx || !wallet}
-        title={loc.send.create_details}
-        onPress={navigateToTransactionDetails}
-      />
+      <View style={[styles.headerContainer, stylesHook.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={loc.settings.default_title}
+          testID="SettingsButton"
+          style={[styles.buttonStyle, stylesHook.button]}
+          onPress={onPressBack}
+        >
+          <View style={styles.icon}>
+            <ArrowLeftIcon color={colors.foregroundColor} />
+          </View>
+        </TouchableOpacity>
+        <View>
+          <BlueText bold>{tx?.value < 0 ? loc.transactions.details_sent : loc.transactions.details_received}</BlueText>
+          <BlueText bold style={styles.label}>
+            {dayjs(tx?.timestamp * 1000).format('LLL')}
+          </BlueText>
+        </View>
+      </View>
     ),
-    [navigateToTransactionDetails, loadingError, isLoading, tx, wallet],
+    [insets, stylesHook, colors, tx],
   );
 
-  useEffect(() => {
+  useFocusEffect(
+    useCallback(() => {
+      const task = InteractionManager.runAfterInteractions(() => {
+        let foundTx: Transaction | false = false;
+        let newFrom: string[] = [];
+        let newTo: string[] = [];
+        for (const transaction of getTransactions(undefined, Infinity, true)) {
+          if (transaction.hash === hash) {
+            foundTx = transaction;
+            for (const input of foundTx.inputs) {
+              newFrom = newFrom.concat(input?.addresses ?? []);
+            }
+            for (const output of foundTx.outputs) {
+              if (output?.address) newTo = newTo.concat(output.address);
+            }
+          }
+        }
+
+        assert(foundTx, 'Internal error: could not find transaction');
+
+        const wallet = wallets.find(w => w.getID() === walletID);
+        assert(wallet, 'Internal error: could not find wallet');
+
+        if (wallet.allowBIP47() && wallet.isBIP47Enabled() && 'getBip47CounterpartyByTxid' in wallet) {
+          const foundPaymentCode = wallet.getBip47CounterpartyByTxid(hash);
+          if (foundPaymentCode) {
+            // okay, this txid _was_ with someone using payment codes, so we show the label edit dialog
+            // and load user-defined alias for the pc if any
+
+            setCounterpartyLabel(counterpartyMetadata ? (counterpartyMetadata[foundPaymentCode]?.label ?? '') : '');
+            setIsCounterpartyLabelVisible(true);
+            setPaymentCode(foundPaymentCode);
+          }
+        }
+
+        setMemo(txMetadata[foundTx.hash]?.memo ?? '');
+        setFrom(newFrom);
+        setTo(newTo);
+        dispatch({ type: ActionType.SetLoading, payload: false });
+      });
+      return () => {
+        task.cancel();
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hash, wallets]),
+  );
+
+  useLayoutEffect(() => {
     setOptions({
-      headerRight: () => DetailsButton,
+      header: () => Header,
     });
-  }, [DetailsButton, colors, hash, setOptions]);
+  }, [Header, colors, hash, setOptions, tx]);
 
   useEffect(() => {
     if (wallet) {
@@ -230,13 +313,13 @@ const TransactionStatus: React.FC<TransactionStatusProps> = ({ transaction, txid
 
         console.debug('got txFromElectrum=', txFromElectrum);
 
-        const address = txFromElectrum.vout?.[0]?.scriptPubKey?.addresses?.pop();
+        const address = txFromElectrum.out?.[0]?.address;
         if (!address) {
           console.error('Address not found in txFromElectrum.');
           return;
         }
 
-        if (!txFromElectrum.confirmations && txFromElectrum.vsize) {
+        if (!txFromElectrum.confirmations && txFromElectrum.size) {
           const txsM = await BlueElectrum.getMempoolTransactionsByAddress(address);
           let txFromMempool;
           // searching for a correct tx in case this address has several pending txs:
@@ -253,7 +336,7 @@ const TransactionStatus: React.FC<TransactionStatusProps> = ({ transaction, txid
 
           console.debug('txFromMempool=', txFromMempool);
 
-          const satPerVbyte = txFromMempool.fee && txFromElectrum.vsize ? Math.round(txFromMempool.fee / txFromElectrum.vsize) : 0;
+          const satPerVbyte = txFromMempool.fee && txFromElectrum.size ? Math.round(txFromMempool.fee / txFromElectrum.size) : 0;
           const fees = await BlueElectrum.estimateFees();
           console.debug('fees=', fees, 'satPerVbyte=', satPerVbyte);
           if (satPerVbyte >= fees.fast) {
@@ -309,200 +392,19 @@ const TransactionStatus: React.FC<TransactionStatusProps> = ({ transaction, txid
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const initialButtonsState = async () => {
-    try {
-      await checkPossibilityOfCPFP();
-      await checkPossibilityOfRBFBumpFee();
-      await checkPossibilityOfRBFCancel();
-    } catch (e) {
-      console.error('Error in initialButtonsState:', e);
-      setAllButtonStatus(ButtonStatus.NotPossible);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    initialButtonsState().catch(error => console.error('Unhandled error in initialButtonsState:', error));
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tx, wallets]);
-
-  useEffect(() => {}, [tx, wallets]);
-
-  useEffect(() => {
-    console.debug('transactionStatus - useEffect');
-  }, []);
-
-  const checkPossibilityOfCPFP = async () => {
-    if (!wallet?.allowRBF()) {
-      return setIsCPFPPossible(ButtonStatus.NotPossible);
-    }
-
-    if (wallet) {
-      const cpfbTx = new HDSegwitBech32Transaction(null, tx.hash, wallet as HDSegwitBech32Wallet);
-      if ((await cpfbTx.isToUsTransaction()) && (await cpfbTx.getRemoteConfirmationsNum()) === 0) {
-        return setIsCPFPPossible(ButtonStatus.Possible);
-      } else {
-        return setIsCPFPPossible(ButtonStatus.NotPossible);
-      }
-    }
-    return setIsCPFPPossible(ButtonStatus.NotPossible);
-  };
-
-  const checkPossibilityOfRBFBumpFee = async () => {
-    if (!wallet?.allowRBF()) {
-      return setIsRBFBumpFeePossible(ButtonStatus.NotPossible);
-    }
-
-    const rbfTx = new HDSegwitBech32Transaction(null, tx.hash, wallet as HDSegwitBech32Wallet);
-    if (
-      (await rbfTx.isOurTransaction()) &&
-      (await rbfTx.getRemoteConfirmationsNum()) === 0 &&
-      (await rbfTx.isSequenceReplaceable()) &&
-      (await rbfTx.canBumpTx())
-    ) {
-      return setIsRBFBumpFeePossible(ButtonStatus.Possible);
-    } else {
-      return setIsRBFBumpFeePossible(ButtonStatus.NotPossible);
-    }
-  };
-
-  const checkPossibilityOfRBFCancel = async () => {
-    if (!wallet?.allowRBF()) {
-      return setIsRBFCancelPossible(ButtonStatus.NotPossible);
-    }
-
-    const rbfTx = new HDSegwitBech32Transaction(null, tx.hash, wallet as HDSegwitBech32Wallet);
-    if (
-      (await rbfTx.isOurTransaction()) &&
-      (await rbfTx.getRemoteConfirmationsNum()) === 0 &&
-      (await rbfTx.isSequenceReplaceable()) &&
-      (await rbfTx.canCancelTx())
-    ) {
-      return setIsRBFCancelPossible(ButtonStatus.Possible);
-    } else {
-      return setIsRBFCancelPossible(ButtonStatus.NotPossible);
-    }
-  };
-
-  const navigateToRBFBumpFee = () => {
-    navigate('RBFBumpFee', {
-      txid: tx.hash,
-      wallet,
-    });
-  };
-
-  const navigateToRBFCancel = () => {
-    navigate('RBFCancel', {
-      txid: tx.hash,
-      wallet,
-    });
-  };
-
-  const navigateToCPFP = () => {
-    navigate('CPFP', {
-      txid: tx.hash,
-      wallet,
-    });
-  };
-
-  const renderCPFP = () => {
-    if (isCPFPPossible === ButtonStatus.Unknown) {
-      return (
-        <>
-          <ActivityIndicator />
-          <BlueSpacing20 />
-        </>
-      );
-    } else if (isCPFPPossible === ButtonStatus.Possible) {
-      return (
-        <>
-          <Button onPress={navigateToCPFP} title={loc.transactions.status_bump} />
-          <BlueSpacing10 />
-        </>
-      );
-    }
-  };
-
-  const renderRBFCancel = () => {
-    if (isRBFCancelPossible === ButtonStatus.Unknown) {
-      return (
-        <>
-          <ActivityIndicator />
-        </>
-      );
-    } else if (isRBFCancelPossible === ButtonStatus.Possible) {
-      return (
-        <>
-          <TouchableOpacity accessibilityRole="button" style={styles.cancel}>
-            <Text onPress={navigateToRBFCancel} style={styles.cancelText}>
-              {loc.transactions.status_cancel}
-            </Text>
-          </TouchableOpacity>
-          <BlueSpacing10 />
-        </>
-      );
-    }
-  };
-
-  const renderRBFBumpFee = () => {
-    if (isRBFBumpFeePossible === ButtonStatus.Unknown) {
-      return (
-        <>
-          <ActivityIndicator />
-          <BlueSpacing20 />
-        </>
-      );
-    } else if (isRBFBumpFeePossible === ButtonStatus.Possible) {
-      return (
-        <>
-          <Button onPress={navigateToRBFBumpFee} title={loc.transactions.status_bump} />
-          <BlueSpacing10 />
-        </>
-      );
-    }
-  };
-
-  const shortenCounterpartyName = (addr: string): string => {
-    if (addr.length < 20) return addr;
-    return addr.substr(0, 10) + '...' + addr.substr(addr.length - 10, 10);
-  };
-
   const renderTXMetadata = () => {
     if (txMetadata[tx.hash]) {
       if (txMetadata[tx.hash].memo) {
         return (
-          <View style={styles.memo}>
-            <Text selectable style={styles.memoText}>
+          <>
+            <BlueText selectable style={styles.memoText}>
               {txMetadata[tx.hash].memo}
-            </Text>
-          </View>
+            </BlueText>
+            <View style={stylesHook.line} />
+          </>
         );
       }
     }
-  };
-
-  const renderTXCounterparty = () => {
-    if (!tx.counterparty) return; // no BIP47 counterparty for this tx, return early
-
-    // theres a counterparty. lets lookup if theres an alias for him
-    let counterparty = counterpartyMetadata?.[tx.counterparty]?.label ?? tx.counterparty;
-    counterparty = shortenCounterpartyName(counterparty);
-
-    return (
-      <View style={styles.memo}>
-        <Text selectable style={styles.memoText}>
-          {tx.value < 0
-            ? loc.formatString(loc.transactions.to, {
-                counterparty,
-              })
-            : loc.formatString(loc.transactions.from, {
-                counterparty,
-              })}
-        </Text>
-        <BlueSpacing20 />
-      </View>
-    );
   };
 
   useEffect(() => {
@@ -547,102 +449,310 @@ const TransactionStatus: React.FC<TransactionStatusProps> = ({ transaction, txid
     }
   }, [isLoading]);
 
+  const saveTransactionDetails = useCallback(() => {
+    if (tx) {
+      txMetadata[tx.hash] = { memo };
+      if (counterpartyLabel && paymentCode) {
+        counterpartyMetadata[paymentCode] = { label: counterpartyLabel };
+      }
+      saveToDisk();
+    }
+  }, [tx, txMetadata, memo, counterpartyLabel, paymentCode, saveToDisk, counterpartyMetadata]);
+
+  const handleMemoBlur = useCallback(() => {
+    saveTransactionDetails();
+  }, [saveTransactionDetails]);
+
+  const navigateToWallet = (wallet: TWallet) => {
+    navigate('WalletTransactions', {
+      walletID: wallet.getID(),
+      walletType: wallet.type,
+    });
+  };
+
+  const onPressMenuItem = (key: string) => {
+    if (key === actionKeys.CopyToClipboard) {
+      handleCopyPress(key);
+    } else if (key === actionKeys.GoToWallet) {
+      const wallet = weOwnAddress(key);
+      if (wallet) {
+        navigateToWallet(wallet);
+      }
+    }
+  };
+
+  const renderSection = (array: any[]) => {
+    const fromArray = [];
+
+    for (const [index, address] of array.entries()) {
+      const actions = [];
+      actions.push({
+        id: actionKeys.CopyToClipboard,
+        text: loc.transactions.details_copy,
+        icon: actionIcons.Clipboard,
+      });
+      const isWeOwnAddress = weOwnAddress(address);
+      if (isWeOwnAddress) {
+        actions.push({
+          id: actionKeys.GoToWallet,
+          text: loc.formatString(loc.transactions.view_wallet, { walletLabel: isWeOwnAddress.getLabel() }),
+          icon: actionIcons.GoToWallet,
+        });
+      }
+
+      fromArray.push(
+        <ToolTipMenu key={address} isButton title={address} isMenuPrimaryAction actions={actions} onPressMenuItem={onPressMenuItem}>
+          <BlueText>
+            {address}
+            {index === array.length - 1 ? null : ','}
+          </BlueText>
+        </ToolTipMenu>,
+      );
+    }
+
+    return fromArray;
+  };
+
+  const weOwnAddress = (address: string): TWallet | null => {
+    for (const w of wallets) {
+      if (w.weOwnAddress(address)) {
+        return w;
+      }
+    }
+    return null;
+  };
+
+  const handleCopyPress = (stringToCopy: string) => {
+    Clipboard.setString(stringToCopy !== actionKeys.CopyToClipboard ? stringToCopy : `${selectedBlockExplorer.url}/tx/${tx?.hash}`);
+  };
+
+  const handleOnOpenTransactionOnBlockExplorerTapped = () => {
+    const url = `${selectedBlockExplorer.url}/tx/${tx?.hash}`;
+    Linking.canOpenURL(url)
+      .then(supported => {
+        if (supported) {
+          Linking.openURL(url).catch(e => {
+            triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
+            presentAlert({ message: e.message });
+          });
+        } else {
+          triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
+          presentAlert({ message: loc.transactions.open_url_error });
+        }
+      })
+      .catch(e => {
+        triggerHapticFeedback(HapticFeedbackTypes.NotificationError);
+        presentAlert({ message: e.message });
+      });
+  };
+
+  const onCopy = (string: string) => {
+    Clipboard.setString(string);
+    triggerHapticFeedback(HapticFeedbackTypes.Selection);
+  };
+
+  if (loadingError) {
+    return (
+      <BlueCard>
+        <BlueText>{loc.transactions.transaction_loading_error}</BlueText>
+      </BlueCard>
+    );
+  }
+
+  if (isLoading || !tx || wallet === undefined) {
+    return <BlueLoading />;
+  }
+
+  if (!transaction && !tx) {
+    return <BlueText>{loc.transactions.transaction_not_available}</BlueText>;
+  }
+
   return (
-    <SafeArea>
-      {loadingError ? (
-        <BlueCard>
-          <BlueText>{loc.transactions.transaction_loading_error}</BlueText>
-        </BlueCard>
-      ) : isLoading || !tx || wallet === undefined ? (
-        <BlueLoading />
-      ) : !transaction && !tx ? (
-        <BlueText>{loc.transactions.transaction_not_available}</BlueText>
-      ) : (
-        <>
-          <HandOffComponent
-            title={loc.transactions.details_title}
-            type={HandOffActivityType.ViewInBlockExplorer}
-            url={`${selectedBlockExplorer.url}/tx/${tx.hash}`}
-          />
-
-          <View style={styles.container}>
-            <BlueCard>
-              <View style={styles.center}>
-                <Text style={[styles.value, stylesHook.value]} selectable>
-                  {wallet && formatBalanceWithoutSuffix(tx.value, wallet.preferredBalanceUnit, true)}
-                  {` `}
-                  {wallet?.preferredBalanceUnit !== BitcoinUnit.LOCAL_CURRENCY && wallet && (
-                    <Text style={[styles.valueUnit, stylesHook.valueUnit]}>{wallet.preferredBalanceUnit}</Text>
-                  )}
-                </Text>
-              </View>
-
-              {renderTXMetadata()}
-              {renderTXCounterparty()}
-
-              <View style={[styles.iconRoot, stylesHook.iconRoot]}>
-                <View>
-                  <Icon name="check" size={50} type="font-awesome" color={colors.successCheck} />
-                </View>
-                <View style={[styles.iconWrap, styles.margin]}>
-                  {(() => {
-                    if (!tx.confirmations) {
-                      return (
-                        <View style={styles.icon}>
-                          <TransactionPendingIcon />
-                        </View>
-                      );
-                    } else if (tx.value < 0) {
-                      return (
-                        <View style={styles.icon}>
-                          <TransactionOutgoingIcon />
-                        </View>
-                      );
-                    } else {
-                      return (
-                        <View style={styles.icon}>
-                          <TransactionIncomingIcon />
-                        </View>
-                      );
-                    }
-                  })()}
-                </View>
-              </View>
-
-              {tx.fee && (
-                <View style={styles.fee}>
-                  <BlueText style={styles.feeText}>
-                    {`${loc.send.create_fee.toLowerCase()} `}
-                    {formatBalanceWithoutSuffix(tx.fee, wallet?.preferredBalanceUnit ?? BitcoinUnit.BTC, true)}
-                    {wallet?.preferredBalanceUnit !== BitcoinUnit.LOCAL_CURRENCY && wallet?.preferredBalanceUnit}
-                  </BlueText>
-                </View>
-              )}
-
-              <View style={styles.confirmations}>
-                <Text style={styles.confirmationsText}>
-                  {loc.formatString(loc.transactions.confirmations_lowercase, {
-                    confirmations: tx.confirmations > 6 ? '6+' : tx.confirmations,
-                  })}
-                </Text>
-              </View>
-              {eta ? (
-                <View style={styles.eta}>
-                  <BlueSpacing10 />
-                  <Text style={styles.confirmationsText}>{eta}</Text>
-                </View>
-              ) : null}
-            </BlueCard>
-
-            <View style={styles.actions}>
-              {renderCPFP()}
-              {renderRBFBumpFee()}
-              {renderRBFCancel()}
-            </View>
+    <SafeAreaScrollView>
+      <HandOffComponent
+        title={loc.transactions.details_title}
+        type={HandOffActivityType.ViewInBlockExplorer}
+        url={`${selectedBlockExplorer.url}/tx/${tx.hash}`}
+      />
+      <View style={styles.container}>
+        <View style={[styles.row, styles.spaceBetween]}>
+          <BlueText style={styles.value} selectable>
+            {wallet && formatBalanceWithoutSuffix(tx.value, wallet.preferredBalanceUnit, true)}
+            {` `}
+            {wallet?.preferredBalanceUnit !== BitcoinUnit.LOCAL_CURRENCY && wallet && (
+              <BlueText style={styles.valueUnit}>{wallet.preferredBalanceUnit}</BlueText>
+            )}
+          </BlueText>
+          <View style={[styles.iconWrap, stylesHook.iconRoot]}>
+            {(() => {
+              if (!tx.confirmations) {
+                return <ThreeDotsIcon size={30} color={colors.foregroundColor} />;
+              } else if (tx.value < 0) {
+                return <ArrowUpRightIcon size={30} color={colors.outgoingForegroundColor} />;
+              } else {
+                return <ArrowDownLeftIcon size={30} color={colors.incomingForegroundColor} />;
+              }
+            })()}
           </View>
+        </View>
+
+        {renderTXMetadata()}
+
+        <View style={stylesHook.blockHash}>
+          {tx.hash ? (
+            <View style={styles.blockHash}>
+              <BlueText style={styles.hash}>{tx.hash}</BlueText>
+              <TouchableOpacity onPress={() => onCopy(tx.hash)}>
+                <CopyIcon size={24} color={colors.foregroundColor} />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.row}>
+          <View style={[styles.flexBlock, styles.gapIndent]}>
+            <BlueText style={styles.label}>{loc.wallets.add_wallet_type}</BlueText>
+            <BlueText bold style={styles.type}>
+              {tx.type}
+            </BlueText>
+          </View>
+          <View style={[styles.flexBlock, styles.gapIndent]}>
+            <BlueText style={styles.label}>{loc.send.create_tx_size}</BlueText>
+            <BlueText bold>{`${tx.size} B`}</BlueText>
+          </View>
+        </View>
+
+        <View style={stylesHook.line} />
+
+        {tx.fee ? (
+          <>
+            <View style={styles.gapIndent}>
+              <BlueText style={styles.label}>{loc.send.create_fee}</BlueText>
+              <BlueText style={styles.feeText}>
+                {formatEcrValueByUnit(tx.fee, wallet?.preferredBalanceUnit ?? BitcoinUnit.ECR, false)}
+                {` `}
+                {wallet?.preferredBalanceUnit !== BitcoinUnit.LOCAL_CURRENCY && wallet?.preferredBalanceUnit}
+              </BlueText>
+              <BlueText style={styles.label}>
+                {((1 / tx.size) * Math.round(tx.fee * 100000000)).toFixed(5)}
+                {' sat/B'}
+              </BlueText>
+            </View>
+            <View style={stylesHook.line} />
+          </>
+        ) : null}
+
+        <View style={styles.confirmations}>
+          <BlueText style={styles.confirmationsText}>
+            {loc.formatString(loc.transactions.confirmations_lowercase, {
+              confirmations: tx.confirmations,
+            })}
+          </BlueText>
+        </View>
+
+        <View style={stylesHook.line} />
+
+        {eta ? (
+          <>
+            <BlueText style={styles.confirmationsText}>{eta}</BlueText>
+            <View style={stylesHook.line} />
+          </>
+        ) : null}
+
+        <>
+          <TextInput
+            placeholder={loc.send.details_note_placeholder}
+            value={memo}
+            placeholderTextColor="#81868e"
+            clearButtonMode="while-editing"
+            style={[styles.memoTextInput, stylesHook.memoTextInput]}
+            onChangeText={setMemo}
+            onBlur={handleMemoBlur}
+            testID="TransactionDetailsMemoInput"
+          />
+          {isCounterpartyLabelVisible ? (
+            <View>
+              <BlueSpacing20 />
+              <TextInput
+                placeholder={loc.send.counterparty_label_placeholder}
+                value={counterpartyLabel}
+                onBlur={handleMemoBlur}
+                placeholderTextColor="#81868e"
+                style={[styles.memoTextInput, stylesHook.memoTextInput]}
+                onChangeText={setCounterpartyLabel}
+              />
+              <BlueSpacing20 />
+            </View>
+          ) : null}
+          <View style={stylesHook.line} />
         </>
-      )}
-    </SafeArea>
+
+        {tx.block_height ? (
+          <>
+            <View style={styles.gapIndent}>
+              <BlueText style={styles.label}>{loc.transactions.block_height}</BlueText>
+              <BlueText style={styles.feeText}>{tx.block_height}</BlueText>
+            </View>
+            <View style={stylesHook.line} />
+          </>
+        ) : null}
+
+        {from && (
+          <>
+            <View style={styles.rowHeader}>
+              <BlueText style={styles.label}>{loc.transactions.details_from}</BlueText>
+
+              <TouchableOpacity onPress={() => onCopy(from.filter(onlyUnique).join(', '))}>
+                <CopyIcon size={24} color={colors.foregroundColor} />
+              </TouchableOpacity>
+            </View>
+            {renderSection(from.filter(onlyUnique))}
+            <View style={stylesHook.line} />
+          </>
+        )}
+
+        {to && (
+          <>
+            <View style={styles.rowHeader}>
+              <BlueText style={styles.label}>{loc.transactions.details_to}</BlueText>
+
+              <TouchableOpacity onPress={() => onCopy(to.filter(onlyUnique).join(', '))}>
+                <CopyIcon size={24} color={colors.foregroundColor} />
+              </TouchableOpacity>
+            </View>
+            {renderSection(arrDiff(from, to.filter(onlyUnique)))}
+            <View style={stylesHook.line} />
+          </>
+        )}
+
+        {tx.inputs && (
+          <>
+            <View style={styles.gapIndent}>
+              <BlueText style={styles.label}>{loc.transactions.details_inputs}</BlueText>
+              <BlueText bold>{tx.inputs.length}</BlueText>
+            </View>
+            <View style={stylesHook.line} />
+          </>
+        )}
+
+        {tx.outputs?.length > 0 && (
+          <View style={styles.gapIndent}>
+            <BlueText style={styles.label}>{loc.transactions.details_outputs}</BlueText>
+            <BlueText bold>{tx.outputs.length}</BlueText>
+          </View>
+        )}
+
+        <ToolTipMenu
+          isButton
+          actions={toolTipMenuActions}
+          onPressMenuItem={handleCopyPress}
+          onPress={handleOnOpenTransactionOnBlockExplorerTapped}
+          buttonStyle={StyleSheet.flatten([styles.greyButton, stylesHook.greyButton])}
+        >
+          <BlueText style={[styles.Link, stylesHook.Link]}>{loc.transactions.details_view_in_browser}</BlueText>
+        </ToolTipMenu>
+      </View>
+    </SafeAreaScrollView>
   );
 };
 
@@ -651,85 +761,110 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
+    padding: 16,
+    gap: 12,
   },
-  center: {
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 16,
+  },
+  flexBlock: {
+    flex: 1,
+  },
+  buttonStyle: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignContent: 'center',
+    backgroundColor: 'rgba(0,0,0,.1)',
+  },
+  type: {
+    textTransform: 'capitalize',
+  },
+  icon: {
+    alignSelf: 'center',
+  },
+  blockHash: {
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
   value: {
-    fontSize: 36,
-    fontWeight: '600',
+    ...Styles.fonts['P4 Bold'],
+    fontSize: 40,
+    lineHeight: 44,
   },
   valueUnit: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  memo: {
-    alignItems: 'center',
-    marginVertical: 8,
+    ...Styles.fonts['P3 Bold'],
   },
   memoText: {
-    color: '#9aa0aa',
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
   },
-  iconRoot: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    marginTop: 43,
-    marginBottom: 53,
-  },
-  iconWrap: {
-    minWidth: 30,
-    minHeight: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-end',
-    borderRadius: 15,
-  },
-  margin: {
-    marginBottom: -40,
-  },
-  icon: {
-    width: 25,
-  },
-  fee: {
-    marginTop: 15,
-    marginBottom: 13,
+  hash: {
+    width: '90%',
   },
   feeText: {
-    fontSize: 11,
-    fontWeight: '500',
+    ...Styles.fonts['P2 Bold'],
     marginBottom: 4,
-    color: '#00c49f',
-    alignSelf: 'center',
   },
   confirmations: {
-    alignSelf: 'center',
-    alignItems: 'center',
     justifyContent: 'center',
   },
   confirmationsText: {
-    color: '#9aa0aa',
-    fontSize: 13,
+    ...Styles.fonts['P2 Regular'],
+    color: '#00c49f',
   },
-  eta: {
-    alignSelf: 'center',
+  memoTextInput: {
+    ...Styles.fonts['P2 Regular'],
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderBottomWidth: 0.5,
+    minHeight: 44,
+    alignItems: 'center',
+    marginVertical: 8,
+    borderRadius: 24,
+    paddingHorizontal: 12,
+  },
+  rowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  gapIndent: {
+    gap: 6,
+  },
+  label: {
+    color: 'grey',
+  },
+  greyButton: {
+    borderRadius: 40,
+    minHeight: 49,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    alignSelf: 'auto',
+    flexGrow: 1,
+  },
+  Link: {
+    ...Styles.fonts['P2 Bold'],
+    paddingHorizontal: 1,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  iconWrap: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 8,
   },
-  actions: {
-    alignSelf: 'center',
-    justifyContent: 'center',
-  },
-  cancel: {
-    marginVertical: 16,
-  },
-  cancelText: {
-    color: '#d0021b',
-    fontSize: 15,
-    fontWeight: '500',
-    textAlign: 'center',
+  spaceBetween: {
+    justifyContent: 'space-between',
   },
 });

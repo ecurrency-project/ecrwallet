@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
-import navigationStyle, { CloseButtonPosition } from '../components/navigationStyle';
+import navigationStyle from '../components/navigationStyle';
 import { useTheme } from '../components/themes';
 import loc from '../loc';
 import {
@@ -80,41 +80,36 @@ const AddWalletStack = () => {
       <Stack.Screen
         name="AddWallet"
         component={AddComponent}
-        options={navigationStyle({
-          closeButtonPosition: CloseButtonPosition.Left,
-          title: loc.wallets.add_title,
-        })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
-      <Stack.Screen
-        name="ImportCustomDerivationPath"
-        component={ImportCustomDerivationPathComponent}
-        options={navigationStyle({ statusBarStyle: 'light', title: loc.wallets.import_derivation_title })(theme)}
-      />
+      {/*<Stack.Screen*/}
+      {/*  name="ImportCustomDerivationPath"*/}
+      {/*  component={ImportCustomDerivationPathComponent}*/}
+      {/*  options={navigationStyle({ statusBarStyle: 'light', title: loc.wallets.import_derivation_title })(theme)}*/}
+      {/*/>*/}
       <Stack.Screen
         name="ImportWallet"
         component={ImportWalletComponent}
-        options={navigationStyle({ title: loc.wallets.import_title })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
-      <Stack.Screen
-        name="ImportSpeed"
-        component={ImportSpeedComponent}
-        options={navigationStyle({ statusBarStyle: 'light', title: loc.wallets.import_title })(theme)}
-      />
+      <Stack.Screen name="ImportSpeed" component={ImportSpeedComponent} />
       <Stack.Screen
         name="ImportWalletDiscovery"
         component={ImportWalletDiscoveryComponent}
-        options={navigationStyle({
-          title: loc.wallets.import_discovery_title,
-        })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
       <Stack.Screen
         name="PleaseBackup"
         component={PleaseBackupComponent}
-        options={navigationStyle({
-          gestureEnabled: false,
-          headerBackVisible: false,
-          title: loc.pleasebackup.title,
-        })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
       <Stack.Screen
         name="PleaseBackupLNDHub"
@@ -124,7 +119,9 @@ const AddWalletStack = () => {
       <Stack.Screen
         name="ProvideEntropy"
         component={ProvideEntropyComponent}
-        options={navigationStyle({ title: loc.entropy.title })(theme)}
+        options={{
+          header: () => null,
+        }}
       />
       <Stack.Screen
         name="WalletsAddMultisig"

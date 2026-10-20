@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { Icon } from '@rneui/themed';
 
 import { useTheme } from '../themes';
+import ArrowDownLeftIcon from '../../img/icons/ArrowDownLeftIcon.tsx';
 
 const styles = StyleSheet.create({
   boxIncoming: {
@@ -11,8 +11,7 @@ const styles = StyleSheet.create({
   ballIncoming: {
     width: 30,
     height: 30,
-    borderRadius: 15,
-    transform: [{ rotate: '-45deg' }],
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   } as ViewStyle,
@@ -23,14 +22,14 @@ const TransactionIncomingIcon: React.FC = () => {
 
   const stylesHooks = StyleSheet.create({
     ballIncoming: {
-      backgroundColor: colors.ballReceive,
+      backgroundColor: colors.inputBackgroundColor,
     },
   });
 
   return (
     <View style={styles.boxIncoming}>
       <View style={[styles.ballIncoming, stylesHooks.ballIncoming]}>
-        <Icon name="arrow-down" size={16} type="font-awesome" color={colors.incomingForegroundColor} />
+        <ArrowDownLeftIcon color={colors.incomingForegroundColor} />
       </View>
     </View>
   );

@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useReducer, useEffect, FC } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Keyboard } from 'react-native';
+import { View, TouchableOpacity, TextInput, StyleSheet, Keyboard } from 'react-native';
 import { useTheme } from '../components/themes';
 import loc, { formatBalance } from '../loc';
 import { BitcoinUnit } from '../models/bitcoinUnits';
@@ -7,6 +7,20 @@ import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navig
 import { SendDetailsStackParamList } from '../navigation/SendDetailsStackParamList';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { NetworkTransactionFeeType } from '../models/networkTransactionFees';
+import { BlueText, Styles } from '../BlueComponents';
+
+// ECR block interval is 10s (node QBitcoin::Const BLOCK_INTERVAL) and it's a PoS chain —
+// a tx with a fee confirms in roughly the next 10-second block. Fee tiers target
+// 1 / 18 / 144 blocks (see BlueElectrum.estimateFees), so the confirmation ETA is
+// targetBlocks × 10s. (Bitcoin's hardcoded "10m / 3h / 1d" labels are wrong for ECR.)
+const ECR_BLOCK_INTERVAL_SEC = 10;
+const confirmationEta = (targetBlocks: number): string => {
+  const seconds = targetBlocks * ECR_BLOCK_INTERVAL_SEC;
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+  return `${Math.round(seconds / 86400)}d`;
+};
 
 enum FeeScreenActions {
   SET_CUSTOM_FEE_VALUE = 'SET_CUSTOM_FEE_VALUE',
@@ -115,16 +129,16 @@ const FeeOption: FC<FeeOptionProps> = ({ label, time, fee, rate, active, disable
       style={[styles.feeModalItem, active && styles.feeModalItemActive, active && !disabled && stylesHook.feeModalItemActiveBackground]}
     >
       <View style={styles.feeModalRow}>
-        <Text style={[styles.feeModalLabel, disabled ? stylesHook.feeOptionTextDisabled : stylesHook.feeOptionText]}>{label}</Text>
+        <BlueText style={[styles.feeModalLabel, disabled ? stylesHook.feeOptionTextDisabled : stylesHook.feeOptionText]}>{label}</BlueText>
         <View style={[styles.feeModalTime, disabled ? stylesHook.feeTimeBackgroundDisabled : stylesHook.feeTimeBackground]}>
-          <Text style={stylesHook.feeTimeText}>~{time}</Text>
+          <BlueText style={stylesHook.feeTimeText}>~{time}</BlueText>
         </View>
       </View>
       <View style={styles.feeModalRow}>
-        <Text style={disabled ? stylesHook.feeOptionTextDisabled : stylesHook.feeOptionText}>{fee && formatFee(fee)}</Text>
-        <Text style={disabled ? stylesHook.feeOptionTextDisabled : stylesHook.feeOptionText}>
+        <BlueText style={disabled ? stylesHook.feeOptionTextDisabled : stylesHook.feeOptionText}>{fee && formatFee(fee)}</BlueText>
+        <BlueText style={disabled ? stylesHook.feeOptionTextDisabled : stylesHook.feeOptionText}>
           {rate} {loc.units.sat_vbyte}
-        </Text>
+        </BlueText>
       </View>
     </TouchableOpacity>
   );
@@ -138,7 +152,7 @@ const SelectFeeScreen = () => {
   const route = useRoute<SelectFeeScreenRouteProp>();
   const { colors } = useTheme();
 
-  const { networkTransactionFees, feePrecalc, feeRate, feeUnit = BitcoinUnit.BTC, walletID, customFee } = route.params;
+  const { networkTransactionFees, feePrecalc, feeRate, feeUnit = BitcoinUnit.ECR, walletID, customFee } = route.params;
 
   const [state, dispatch] = useReducer(feeScreenReducer, {
     customFeeValue: customFee || '',
@@ -183,10 +197,10 @@ const SelectFeeScreen = () => {
   const formatFee = useCallback((fee: number) => formatBalance(fee, feeUnit, true), [feeUnit]);
 
   useEffect(() => {
-    const options: FeeOption[] = [
+    const allOptions: FeeOption[] = [
       {
         label: loc.send.fee_fast,
-        time: loc.send.fee_10m,
+        time: confirmationEta(1),
         fee: feePrecalc.fastestFee,
         rate: nf.fastestFee,
         feeType: NetworkTransactionFeeType.FAST,
@@ -194,23 +208,29 @@ const SelectFeeScreen = () => {
       },
       {
         label: loc.send.fee_medium,
-        time: loc.send.fee_3h,
+        time: confirmationEta(18),
         fee: feePrecalc.mediumFee,
         rate: nf.mediumFee,
         feeType: NetworkTransactionFeeType.MEDIUM,
         active: false,
-        disabled: nf.mediumFee === nf.fastestFee,
       },
       {
         label: loc.send.fee_slow,
-        time: loc.send.fee_1d,
+        time: confirmationEta(144),
         fee: feePrecalc.slowFee,
         rate: nf.slowFee,
         feeType: NetworkTransactionFeeType.SLOW,
         active: false,
-        disabled: nf.slowFee === nf.mediumFee || nf.slowFee === nf.fastestFee,
       },
     ];
+    // ECR has a flat fee market — all tiers share one rate. Collapse duplicates so we
+    // don't render three identical-priced rows; keep the first option per unique rate.
+    const seenRates = new Set<number>();
+    const options = allOptions.filter(option => {
+      if (seenRates.has(option.rate)) return false;
+      seenRates.add(option.rate);
+      return true;
+    });
     dispatch({ type: FeeScreenActions.SET_OPTIONS, payload: { options, currentFeeRate: Number(feeRate) } });
   }, [feePrecalc, nf, feeRate]);
 
@@ -287,7 +307,7 @@ const SelectFeeScreen = () => {
           ]}
         >
           <View style={styles.feeModalRow}>
-            <Text style={[styles.feeModalLabel, stylesHook.customLabelColor]}>{loc.send.fee_custom}</Text>
+            <BlueText style={[styles.feeModalLabel, stylesHook.customLabelColor]}>{loc.send.fee_custom}</BlueText>
             <View style={styles.customFeeContainer}>
               <TextInput
                 ref={customFeeInputRef}
@@ -306,7 +326,7 @@ const SelectFeeScreen = () => {
                 testID="feeCustom"
               />
               {state.customFeeValue && /^\d+(\.\d+)?$/.test(state.customFeeValue) && Number(state.customFeeValue) > 0 && (
-                <Text style={stylesHook.satVbyteText}>{loc.units.sat_vbyte}</Text>
+                <BlueText style={stylesHook.satVbyteText}>{loc.units.sat_vbyte}</BlueText>
               )}
             </View>
           </View>
@@ -320,8 +340,7 @@ export default SelectFeeScreen;
 
 const styles = StyleSheet.create({
   screenContainer: {
-    minHeight: 300,
-    maxHeight: 500,
+    height: '100%',
   },
   contentContainer: {
     paddingTop: 16,
@@ -341,15 +360,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   feeModalLabel: {
-    fontSize: 22,
-    fontWeight: '600',
+    ...Styles.fonts['P2 Bold'],
   },
   customFeeInput: {
-    fontSize: 16,
+    ...Styles.fonts['P2 Regular'],
     height: 36,
     textAlign: 'right',
     padding: 0,
-    width: 70,
+    width: 150,
     marginRight: 4,
   },
   customFeeContainer: {

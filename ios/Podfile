@@ -6,7 +6,7 @@ def node_require(script)
       {paths: [process.argv[1]]},
     )", __dir__]).strip
 end
-ENV['RCT_NEW_ARCH_ENABLED'] = '0'
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
 min_ios_version_supported = '15.1'
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
@@ -18,7 +18,7 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-workspace 'BlueWallet'
+workspace 'ECRWallet'
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 setup_permissions(['Camera', 'Notifications'])
@@ -42,7 +42,7 @@ def configure_target()
 end
 
 
-target 'BlueWallet' do
+target 'ECRWallet' do
   configure_target()
 end
 
@@ -55,8 +55,17 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
-      
-      if ['React-Core-AccessibilityResources'].include? target.name 
+
+      # Fix for Xcode 26.x / Apple Clang 21: fmt 11.0.2's consteval basic_format_string
+      # constructor fails to compile in C++20 mode ("call to consteval function ... is
+      # not a constant expression"). Building the fmt pod as C++17 makes fmt skip the
+      # consteval path (FMT_USE_CONSTEVAL=0 -> runtime format-string checks).
+      # Temporary workaround until React Native bumps fmt to a Clang-21-compatible version.
+      if target.name == 'fmt'
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+
+      if ['React-Core-AccessibilityResources'].include? target.name
         config.build_settings['CODE_SIGN_STYLE'] = "Manual"
         config.build_settings['CODE_SIGN_IDENTITY'] = "Apple Distribution: Bluewallet Services, S. R. L. (A7W54YZ4WU)"
         config.build_settings['DEVELOPMENT_TEAM'] = "A7W54YZ4WU"

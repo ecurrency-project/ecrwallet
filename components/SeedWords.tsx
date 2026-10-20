@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from './themes';
 import { useLocale } from '@react-navigation/native';
+import { BlueText, Styles } from '../BlueComponents';
 
 const SeedWords = ({ seed }: { seed: string }) => {
   const words = seed.split(/\s/);
@@ -28,15 +29,15 @@ const SeedWords = ({ seed }: { seed: string }) => {
         const text = `${index + 1}. ${secret}  `;
         return (
           <View style={[styles.word, stylesHook.word]} key={index}>
-            <Text style={[styles.wortText, stylesHook.wortText]} textBreakStrategy="simple">
+            <BlueText style={[styles.wortText, stylesHook.wortText]} textBreakStrategy="simple">
               {text}
-            </Text>
+            </BlueText>
           </View>
         );
       })}
-      <Text style={styles.hiddenText} testID="Secret">
+      <BlueText style={styles.hiddenText} testID="Secret">
         {seed}
-      </Text>
+      </BlueText>
     </View>
   );
 };
@@ -44,7 +45,6 @@ const SeedWords = ({ seed }: { seed: string }) => {
 const styles = StyleSheet.create({
   word: {
     marginRight: 8,
-    marginBottom: 8,
     paddingTop: 6,
     paddingBottom: 6,
     paddingLeft: 8,
@@ -52,13 +52,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   wortText: {
-    fontWeight: 'bold',
+    ...Styles.fonts['P3 Bold'],
     textAlign: 'left',
-    fontSize: 17,
   },
   secret: {
     flexWrap: 'wrap',
     justifyContent: 'center',
+    gap: 10,
+    padding: 10,
   },
   hiddenText: {
     height: 0,

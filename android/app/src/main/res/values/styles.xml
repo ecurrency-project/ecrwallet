@@ -11,13 +11,35 @@
         <item name="colorPrimary">@color/button_background_color</item>
         <item name="colorPrimaryVariant">@color/button_alternative_text_color</item>
         <item name="colorOnPrimary">@color/button_text_color</item>
+        <!-- colorPrimary above is a button *background*, unreadable as dialog button text,
+             so native dialogs get their own overlay. Keep in sync with values-night/styles.xml -->
+        <item name="alertDialogTheme">@style/AppAlertDialogTheme</item>
+        <item name="materialAlertDialogTheme">@style/AppAlertDialogTheme</item>
     </style>
-    
+
+    <!-- Theme for the native AlertDialog used by RN's Alert.alert.
+         Colors resolve through values-night, so a single definition covers both themes. -->
+    <style name="AppAlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="colorPrimary">@color/dialog_button_text_color</item>
+        <item name="colorAccent">@color/dialog_button_text_color</item>
+        <item name="android:colorBackground">@color/dialog_background_color</item>
+        <item name="colorSurface">@color/dialog_background_color</item>
+        <item name="android:textColorPrimary">@color/foreground_color</item>
+        <item name="android:textColorSecondary">@color/alternative_text_color</item>
+        <item name="buttonBarPositiveButtonStyle">@style/AppAlertDialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AppAlertDialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/AppAlertDialogButton</item>
+    </style>
+
+    <style name="AppAlertDialogButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/dialog_button_text_color</item>
+    </style>
+
     <!-- Widget text styles -->
     <style name="WidgetTextPrimary">
         <item name="android:textColor">@color/text_primary</item>
     </style>
-    
+
     <style name="WidgetTextSecondary">
         <item name="android:textColor">@color/text_secondary</item>
     </style>

@@ -3,6 +3,7 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 import { Icon } from '@rneui/themed';
 
 import { useTheme } from '../themes';
+import ThreeDotsIcon from '../../img/icons/ThreeDotsIcon.tsx';
 
 const styles = StyleSheet.create({
   boxIncoming: {
@@ -11,7 +12,8 @@ const styles = StyleSheet.create({
   ball: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: 8,
+    transform: [{ rotate: '-90deg' }],
     justifyContent: 'center',
     alignItems: 'center',
   } as ViewStyle,
@@ -22,14 +24,14 @@ const TransactionPendingIcon: React.FC = () => {
 
   const stylesHook = StyleSheet.create({
     ball: {
-      backgroundColor: colors.buttonBackgroundColor,
+      backgroundColor: colors.inputBackgroundColor,
     },
   });
 
   return (
     <View style={styles.boxIncoming}>
       <View style={[styles.ball, stylesHook.ball]}>
-        <Icon name="more-horiz" type="material" size={16} color={colors.foregroundColor} />
+        <ThreeDotsIcon color={colors.foregroundColor} />
       </View>
     </View>
   );

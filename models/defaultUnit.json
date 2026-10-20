@@ -1,0 +1,9 @@
+{
+  "USD": {
+    "endPointKey": "USD",
+    "locale": "en-US",
+    "source": "Ecurrency",
+    "symbol": "$",
+    "country": "United States (US Dollar)"
+  }
+}

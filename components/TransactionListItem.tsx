@@ -1,14 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useCallback, useMemo, useRef, memo, JSX } from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Linking, View, ViewStyle, StyleSheet } from 'react-native';
-import Lnurl from '../class/lnurl';
+import { Linking, View, ViewStyle } from 'react-native';
+import dayjs from 'dayjs';
 import { LightningTransaction, Transaction } from '../class/wallets/types';
 import TransactionExpiredIcon from '../components/icons/TransactionExpiredIcon';
 import TransactionIncomingIcon from '../components/icons/TransactionIncomingIcon';
-import TransactionOffchainIcon from '../components/icons/TransactionOffchainIcon';
 import TransactionOffchainIncomingIcon from '../components/icons/TransactionOffchainIncomingIcon';
-import TransactionOnchainIcon from '../components/icons/TransactionOnchainIcon';
 import TransactionOutgoingIcon from '../components/icons/TransactionOutgoingIcon';
 import TransactionPendingIcon from '../components/icons/TransactionPendingIcon';
 import loc, { formatBalanceWithoutSuffix, transactionTimeToReadable } from '../loc';
@@ -25,20 +22,7 @@ import ToolTipMenu from './TooltipMenu';
 import { CommonToolTipActions } from '../typings/CommonToolTipActions';
 import { pop } from '../NavigationService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import HighlightedText from './HighlightedText';
-
-const styles = StyleSheet.create({
-  subtitle: {
-    color: 'colors.foregroundColor',
-    fontSize: 13,
-  },
-  highlight: {
-    backgroundColor: '#FFF5C0',
-    color: '#000000',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+import { Styles } from '../BlueComponents';
 
 interface TransactionListItemProps {
   itemPriceUnit?: BitcoinUnit;
@@ -53,8 +37,7 @@ interface TransactionListItemProps {
 type NavigationProps = NativeStackNavigationProp<DetailViewStackParamList>;
 
 export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
-  ({ item, itemPriceUnit = BitcoinUnit.BTC, walletID, searchQuery, style, renderHighlightedText, onPress: customOnPress }) => {
-    const [subtitleNumberOfLines, setSubtitleNumberOfLines] = useState(1);
+  ({ item, itemPriceUnit = BitcoinUnit.ECR, walletID, searchQuery, style, renderHighlightedText, onPress: customOnPress }) => {
     const { colors } = useTheme();
     const { navigate } = useExtendedNavigation<NavigationProps>();
     const menuRef = useRef<ToolTipMenuProps>();
@@ -65,9 +48,11 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
       () => ({
         backgroundColor: colors.background,
         borderBottomColor: colors.lightBorder,
-        paddingLeft: 16,
-
-        paddingRight: 16,
+        marginHorizontal: 12,
+        borderColor: colors.lightBorder,
+        borderWidth: 1,
+        borderRadius: 16,
+        borderBottomWidth: 1,
       }),
       [colors.background, colors.lightBorder],
     );
@@ -82,11 +67,15 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
     const title = useMemo(() => {
       if (item.confirmations === 0) {
         return loc.transactions.pending;
+      } else if (item.value! > 0) {
+        return loc.transactions.details_received;
+      } else if (item.value! < 0) {
+        return loc.transactions.details_sent;
       } else {
         return transactionTimeToReadable(item.timestamp);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [item.confirmations, item.timestamp, language]);
+    }, [item.confirmations, item.timestamp, item.value, language]);
 
     let counterparty;
     if (item.counterparty) {
@@ -137,48 +126,23 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
           }
         }
       } else if (item.value! / 100000000 < 0) {
-        color = colors.foregroundColor;
+        color = colors.redText;
       }
 
       return {
         color,
-        fontSize: 14,
-        fontWeight: '600',
+        ...Styles.fonts['P2 Bold'],
         textAlign: 'right',
         paddingRight: insets.right,
         paddingLeft: insets.left,
       };
-    }, [
-      colors.successColor,
-      colors.foregroundColor,
-      item.type,
-      item.value,
-      item.timestamp,
-      item.expire_time,
-      item.ispaid,
-      insets.right,
-      insets.left,
-    ]);
+    }, [colors, item, insets]);
 
     const determineTransactionTypeAndAvatar = () => {
       if (item.category === 'receive' && item.confirmations! < 3) {
         return {
           label: loc.transactions.pending_transaction,
           icon: <TransactionPendingIcon />,
-        };
-      }
-
-      if (item.type && item.type === 'bitcoind_tx') {
-        return {
-          label: loc.transactions.onchain,
-          icon: <TransactionOnchainIcon />,
-        };
-      }
-
-      if (item.type === 'paid_invoice') {
-        return {
-          label: loc.transactions.offchain,
-          icon: <TransactionOffchainIcon />,
         };
       }
 
@@ -225,13 +189,9 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
     const { label: transactionTypeLabel, icon: avatar } = determineTransactionTypeAndAvatar();
 
     const amountWithUnit = useMemo(() => {
-      const unitSuffix = itemPriceUnit === BitcoinUnit.BTC || itemPriceUnit === BitcoinUnit.SATS ? ` ${itemPriceUnit}` : ' ';
+      const unitSuffix = itemPriceUnit === BitcoinUnit.ECR || itemPriceUnit === BitcoinUnit.SATS ? ` ${itemPriceUnit}` : ' ';
       return `${formattedAmount}${unitSuffix}`;
     }, [formattedAmount, itemPriceUnit]);
-
-    useEffect(() => {
-      setSubtitleNumberOfLines(1);
-    }, [subtitle]);
 
     const onPress = useCallback(async () => {
       menuRef?.current?.dismissMenu?.();
@@ -246,57 +206,14 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
           pop();
         }
         navigate('TransactionStatus', { hash: item.hash, walletID });
-      } else if (item.type === 'user_invoice' || item.type === 'payment_request' || item.type === 'paid_invoice') {
-        const lightningWallet = wallets.filter(wallet => wallet?.getID() === item.walletID);
-        if (lightningWallet.length === 1) {
-          try {
-            // is it a successful lnurl-pay?
-            const LN = new Lnurl(false, AsyncStorage);
-            let paymentHash = item.payment_hash!;
-            if (typeof paymentHash === 'object') {
-              paymentHash = Buffer.from(paymentHash.data).toString('hex');
-            }
-            const loaded = await LN.loadSuccessfulPayment(paymentHash);
-            if (loaded) {
-              navigate('ScanLNDInvoiceRoot', {
-                screen: 'LnurlPaySuccess',
-                params: {
-                  paymentHash,
-                  justPaid: false,
-                  fromWalletID: lightningWallet[0].getID(),
-                },
-              });
-              return;
-            }
-          } catch (e) {
-            console.debug(e);
-          }
-
-          navigate('LNDViewInvoice', {
-            invoice: item,
-            walletID: lightningWallet[0].getID(),
-          });
-        }
       }
-    }, [item, renderHighlightedText, navigate, walletID, wallets, customOnPress]);
-
-    const handleOnExpandNote = useCallback(() => {
-      setSubtitleNumberOfLines(0);
-    }, []);
+    }, [item, renderHighlightedText, navigate, walletID, customOnPress]);
 
     const handleOnDetailsPress = useCallback(() => {
       if (walletID && item && item.hash) {
-        navigate('TransactionDetails', { tx: item, hash: item.hash, walletID });
-      } else {
-        const lightningWallet = wallets.find(wallet => wallet?.getID() === item.walletID);
-        if (lightningWallet) {
-          navigate('LNDViewInvoice', {
-            invoice: item,
-            walletID: lightningWallet.getID(),
-          });
-        }
+        navigate('TransactionStatus', { hash: item.hash, walletID });
       }
-    }, [item, navigate, walletID, wallets]);
+    }, [item, navigate, walletID]);
 
     const handleOnCopyAmountTap = useCallback(() => Clipboard.setString(rowTitle.replace(/[\s\\-]/g, '')), [rowTitle]);
     const handleOnCopyTransactionID = useCallback(() => Clipboard.setString(item.hash), [item.hash]);
@@ -321,8 +238,6 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
           handleOnCopyNote();
         } else if (id === CommonToolTipActions.OpenInBlockExplorer.id) {
           handleOnViewOnBlockExplorer();
-        } else if (id === CommonToolTipActions.ExpandNote.id) {
-          handleOnExpandNote();
         } else if (id === CommonToolTipActions.CopyBlockExplorerLink.id) {
           handleCopyOpenInBlockExplorerPress();
         } else if (id === CommonToolTipActions.CopyTXID.id) {
@@ -337,7 +252,6 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
         handleOnCopyNote,
         handleOnCopyTransactionID,
         handleOnDetailsPress,
-        handleOnExpandNote,
         handleOnViewOnBlockExplorer,
       ],
     );
@@ -359,57 +273,26 @@ export const TransactionListItem: React.FC<TransactionListItemProps> = memo(
           ...CommonToolTipActions.CopyBlockExplorerLink,
           hidden: !item.hash,
         },
-        [{ ...CommonToolTipActions.OpenInBlockExplorer, hidden: !item.hash }, CommonToolTipActions.Details],
-        [
-          {
-            ...CommonToolTipActions.ExpandNote,
-            hidden: subtitleNumberOfLines !== 1,
-          },
-        ],
+        [CommonToolTipActions.Details],
       ];
 
       return actions as Action[];
-    }, [rowTitle, subtitle, item.hash, subtitleNumberOfLines]);
-
-    const accessibilityState = useMemo(() => {
-      return {
-        expanded: subtitleNumberOfLines === 0,
-      };
-    }, [subtitleNumberOfLines]);
-
-    const subtitleProps = useMemo(() => ({ numberOfLines: subtitleNumberOfLines }), [subtitleNumberOfLines]);
+    }, [rowTitle, subtitle, item.hash]);
 
     return (
       <ToolTipMenu
-        isButton
         actions={toolTipActions}
-        onPressMenuItem={onToolTipPress}
+        isButton
         onPress={onPress}
+        onPressMenuItem={onToolTipPress}
         accessibilityLabel={`${transactionTypeLabel}, ${amountWithUnit}, ${subtitle ?? title}`}
         accessibilityRole="button"
-        accessibilityState={accessibilityState}
       >
         <ListItem
+          subtitle={dayjs(item.timestamp * 1000).format('LLL')}
           leftAvatar={avatar}
           title={title}
-          subtitleNumberOfLines={subtitleNumberOfLines}
-          subtitle={
-            subtitle ? (
-              renderHighlightedText ? (
-                renderHighlightedText(subtitle, searchQuery ?? '')
-              ) : (
-                <HighlightedText
-                  text={subtitle}
-                  query={searchQuery ?? ''}
-                  caseSensitive={false}
-                  highlightOnlyFirstMatch={searchQuery ? searchQuery.length === 1 : false}
-                  style={styles.subtitle}
-                />
-              )
-            ) : undefined
-          }
           Component={View}
-          subtitleProps={subtitleProps}
           chevron={false}
           rightTitle={rowTitle}
           rightTitleStyle={rowTitleStyle}

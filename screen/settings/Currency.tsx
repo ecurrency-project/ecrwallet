@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import calendar from 'dayjs/plugin/calendar';
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { NativeSyntheticEvent, StyleSheet, View, LayoutAnimation, UIManager, Platform, Keyboard } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View, UIManager, Platform, Keyboard } from 'react-native';
 
 import {
   CurrencyRate,
@@ -14,12 +14,12 @@ import { BlueCard, BlueText } from '../../BlueComponents';
 import presentAlert from '../../components/Alert';
 import ListItem from '../../components/ListItem';
 import { useTheme } from '../../components/themes';
-import { useExtendedNavigation } from '../../hooks/useExtendedNavigation';
 import loc from '../../loc';
 import { FiatUnit, FiatUnitSource, FiatUnitType, getFiatRate } from '../../models/fiatUnit';
 import { useSettings } from '../../hooks/context/useSettings';
 import SafeAreaFlatList from '../../components/SafeAreaFlatList';
 import { BlueSpacing10, BlueSpacing20 } from '../../components/BlueSpacing';
+import ItemSeparatorComponent from '../../components/ItemSeparatorComponent';
 
 dayjs.extend(calendar);
 
@@ -34,10 +34,7 @@ const Currency: React.FC = () => {
   const [isSavingNewPreferredCurrency, setIsSavingNewPreferredCurrency] = useState<FiatUnitType | undefined>();
   const [selectedCurrency, setSelectedCurrency] = useState<FiatUnitType>(FiatUnit.USD);
   const [currencyRate, setCurrencyRate] = useState<CurrencyRate>({ LastUpdated: null, Rate: null });
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { colors } = useTheme();
-  const { setOptions } = useExtendedNavigation();
-  const [search, setSearch] = useState('');
 
   const stylesHook = StyleSheet.create({
     flex: {
@@ -46,15 +43,8 @@ const Currency: React.FC = () => {
   });
 
   const data = useMemo(() => {
-    if (search.length > 0) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    }
-
-    const searchLower = search.toLowerCase();
-    return Object.values(FiatUnit).filter(
-      item => item.endPointKey.toLowerCase().includes(searchLower) || item.country.toLowerCase().includes(searchLower),
-    );
-  }, [search]);
+    return Object.values(FiatUnit).filter(item => item.endPointKey.toLowerCase() || item.country.toLowerCase());
+  }, []);
 
   const fetchCurrency = useCallback(async () => {
     let preferredCurrency;
@@ -75,20 +65,6 @@ const Currency: React.FC = () => {
     fetchCurrency();
   }, [fetchCurrency]);
 
-  const handleSearchChange = useCallback((event: NativeSyntheticEvent<{ text: string }>) => {
-    setSearch(event.nativeEvent.text);
-  }, []);
-
-  useLayoutEffect(() => {
-    setOptions({
-      headerSearchBarOptions: {
-        onChangeText: handleSearchChange,
-        onFocus: () => setIsSearchFocused(true),
-        onBlur: () => setIsSearchFocused(false),
-      },
-    });
-  }, [setOptions, handleSearchChange]);
-
   const getItemLayout = useCallback(
     (_data: unknown, index: number) => ({
       length: ITEM_HEIGHT,
@@ -107,7 +83,6 @@ const Currency: React.FC = () => {
 
       return (
         <ListItem
-          disabled={isDisabled}
           title={`${item.endPointKey} (${item.symbol})`}
           containerStyle={StyleSheet.flatten([styles.flex, stylesHook.flex, { height: ITEM_HEIGHT }])}
           checkmark={isSelected}
@@ -146,12 +121,12 @@ const Currency: React.FC = () => {
   );
 
   const CurrencyInfo = useMemo(() => {
-    if (isSearchFocused && !selectedCurrencyVisible) return null;
+    if (!selectedCurrencyVisible) return null;
 
     return (
       <BlueCard>
         <BlueText>
-          {loc.settings.currency_source} {selectedCurrency?.source ?? FiatUnitSource.CoinDesk}
+          {loc.settings.currency_source} {selectedCurrency?.source ?? FiatUnitSource.Ecurrency}
         </BlueText>
         <BlueSpacing10 />
         <BlueText>
@@ -164,13 +139,14 @@ const Currency: React.FC = () => {
         <BlueSpacing20 />
       </BlueCard>
     );
-  }, [isSearchFocused, selectedCurrencyVisible, selectedCurrency?.source, currencyRate]);
+  }, [selectedCurrencyVisible, selectedCurrency?.source, currencyRate]);
 
   const keyExtractor = useCallback((item: FiatUnitType) => `${item.endPointKey}-${item.locale}`, []);
 
   return (
     <View style={[styles.flex, stylesHook.flex]}>
       <SafeAreaFlatList
+        style={styles.listContainer}
         contentInsetAdjustmentBehavior="automatic"
         automaticallyAdjustContentInsets
         automaticallyAdjustKeyboardInsets
@@ -184,6 +160,7 @@ const Currency: React.FC = () => {
         removeClippedSubviews={true}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
+        ItemSeparatorComponent={ItemSeparatorComponent}
       />
       {CurrencyInfo}
     </View>
@@ -195,5 +172,9 @@ export default Currency;
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+    borderBottomWidth: 0,
+  },
+  listContainer: {
+    paddingHorizontal: 16,
   },
 });

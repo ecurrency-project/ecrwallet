@@ -4,8 +4,7 @@ import BigNumber from 'bignumber.js';
 import LottieView from 'lottie-react-native';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import { Text } from '@rneui/themed';
-import { BlueCard } from '../../BlueComponents';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
 import Button from '../../components/Button';
 import SafeArea from '../../components/SafeArea';
 import { useTheme } from '../../components/themes';
@@ -22,7 +21,7 @@ const Success = () => {
   const { colors } = useTheme();
   const { selectedBlockExplorer } = useSettings();
   const { getParent } = useNavigation();
-  const { amount, fee, amountUnit = BitcoinUnit.BTC, invoiceDescription = '', onDonePressed = pop, txid } = useRoute().params;
+  const { amount, fee, amountUnit = BitcoinUnit.ECR, invoiceDescription = '', onDonePressed = pop, txid } = useRoute().params;
   const stylesHook = StyleSheet.create({
     root: {
       backgroundColor: colors.elevated,
@@ -34,9 +33,6 @@ const Success = () => {
       color: colors.alternativeTextColor2,
     },
   });
-  useEffect(() => {
-    console.log('send/success - useEffect');
-  }, []);
 
   return (
     <SafeArea style={[styles.root, stylesHook.root]}>
@@ -96,19 +92,19 @@ export const SuccessView = ({ amount, amountUnit, fee, invoiceDescription, shoul
           <View style={styles.view}>
             {amount ? (
               <>
-                <Text style={[styles.amountValue, stylesHook.amountValue]}>{amount}</Text>
-                <Text style={[styles.amountUnit, stylesHook.amountUnit]}>{' ' + loc.units[amountUnit]}</Text>
+                <BlueText style={[styles.amountValue, stylesHook.amountValue]}>{new BigNumber(amount).toFixed(8)}</BlueText>
+                <BlueText style={[styles.amountUnit, stylesHook.amountUnit]}>{' ' + loc.units[amountUnit]}</BlueText>
               </>
             ) : null}
           </View>
           {fee > 0 && (
-            <Text style={styles.feeText}>
-              {loc.send.create_fee}: {new BigNumber(fee).toFixed(8)} {loc.units[BitcoinUnit.BTC]}
-            </Text>
+            <BlueText style={styles.feeText}>
+              {loc.send.create_fee}: {new BigNumber(fee).toFixed(8)} {loc.units[BitcoinUnit.ECR]}
+            </BlueText>
           )}
-          <Text numberOfLines={0} style={styles.feeText}>
+          <BlueText numberOfLines={0} style={styles.feeText}>
             {invoiceDescription}
-          </Text>
+          </BlueText>
         </BlueCard>
       ) : null}
 
@@ -123,15 +119,15 @@ export const SuccessView = ({ amount, amountUnit, fee, invoiceDescription, shoul
           colorFilters={[
             {
               keypath: 'spark',
-              color: colors.success,
+              color: colors.redBG,
             },
             {
               keypath: 'circle',
-              color: colors.success,
+              color: colors.redBG,
             },
             {
               keypath: 'Oval',
-              color: colors.successCheck,
+              color: colors.redText,
             },
           ]}
           resizeMode="center"
@@ -166,22 +162,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   amountValue: {
+    ...Styles.fonts['P2 Bold'],
     fontSize: 36,
-    fontWeight: '600',
+    lineHeight: 42,
   },
   amountUnit: {
-    fontSize: 16,
+    ...Styles.fonts['P2 Bold'],
     marginHorizontal: 4,
     paddingBottom: 6,
-    fontWeight: '600',
     alignSelf: 'flex-end',
   },
   feeText: {
+    ...Styles.fonts['P1 Bold'],
     color: '#37c0a1',
-    fontSize: 14,
     marginHorizontal: 4,
     paddingVertical: 6,
-    fontWeight: '500',
     alignSelf: 'center',
   },
   ready: {

@@ -1,25 +1,21 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { useTheme } from './themes';
-
 const tabsStyles = StyleSheet.create({
   root: {
     flexDirection: 'row',
     height: 50,
-    borderColor: '#e3e3e3',
-    borderBottomWidth: 1,
   },
   tabRoot: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderColor: 'white',
+    borderColor: '#e3e3e3',
     borderBottomWidth: 2,
   },
   activeTabRoot: {
-    borderColor: 'transparent',
     borderBottomWidth: 2,
+    borderColor: '#D53131',
   },
   marginBottom: {
     marginBottom: 30,
@@ -38,7 +34,6 @@ interface TabsProps {
 }
 
 export const Tabs: React.FC<TabsProps> = ({ active, onSwitch, tabs, isIpad = false }) => {
-  const { colors } = useTheme();
   return (
     <View style={[tabsStyles.root, isIpad && tabsStyles.marginBottom]}>
       {tabs.map((Tab, i) => (
@@ -46,7 +41,7 @@ export const Tabs: React.FC<TabsProps> = ({ active, onSwitch, tabs, isIpad = fal
           key={i}
           accessibilityRole="button"
           onPress={() => onSwitch(i)}
-          style={[tabsStyles.tabRoot, active === i && { ...tabsStyles.activeTabRoot, borderColor: colors.buttonAlternativeTextColor }]}
+          style={[tabsStyles.tabRoot, active === i && { ...tabsStyles.activeTabRoot }]}
         >
           <Tab active={active === i} />
         </TouchableOpacity>

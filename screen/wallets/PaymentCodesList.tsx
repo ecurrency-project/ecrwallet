@@ -334,7 +334,7 @@ export default function PaymentCodesList() {
     if (
       await confirm(
         loc.bip47.onchain_tx_needed,
-        `${loc.send.create_fee}: ${formatBalance(fee, BitcoinUnit.BTC)} (${satoshiToLocalCurrency(fee)}). `,
+        `${loc.send.create_fee}: ${formatBalance(fee, BitcoinUnit.ECR)} (${satoshiToLocalCurrency(fee)}). `,
       )
     ) {
       setLoadingText('Broadcasting...');

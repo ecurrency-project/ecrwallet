@@ -1,13 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useReducer } from 'react';
-import { TouchableWithoutFeedback, View } from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { TWallet } from '../../class/wallets/types';
 import ListItem from '../../components/ListItem';
 import useOnAppLaunch from '../../hooks/useOnAppLaunch';
 import loc from '../../loc';
 import { useStorage } from '../../hooks/context/useStorage';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
+import NavigationItem from '../../components/NavigationItem.tsx';
 
 type RootStackParamList = {
   SelectWallet: { onWalletSelect: (wallet: TWallet) => void; onChainRequireSend: boolean };
@@ -94,7 +95,7 @@ const DefaultView: React.FC = () => {
   };
 
   return (
-    <SafeAreaScrollView automaticallyAdjustContentInsets={false} contentInsetAdjustmentBehavior="automatic">
+    <SafeAreaScrollView style={styles.root} automaticallyAdjustContentInsets={false} contentInsetAdjustmentBehavior="automatic">
       <View>
         <ListItem
           title={loc.settings.default_wallets}
@@ -108,17 +109,18 @@ const DefaultView: React.FC = () => {
         />
 
         {!state.isViewAllWalletsSwitchEnabled && (
-          <ListItem
-            title={loc.settings.default_info}
-            onPress={selectWallet}
-            rightTitle={state.defaultWalletLabel}
-            chevron
-            disabled={wallets.length <= 1}
-          />
+          <NavigationItem title={loc.settings.default_info} onPress={selectWallet} disabled={wallets.length <= 1} />
         )}
       </View>
     </SafeAreaScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  root: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+});
 
 export default DefaultView;

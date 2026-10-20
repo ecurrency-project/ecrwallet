@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { TouchableOpacity, Text, StyleSheet, LayoutAnimation, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, LayoutAnimation, View } from 'react-native';
 import { useStorage } from '../hooks/context/useStorage';
 import loc, { formatBalanceWithoutSuffix } from '../loc';
 import { BitcoinUnit } from '../models/bitcoinUnits';
@@ -8,6 +8,7 @@ import { CommonToolTipActions } from '../typings/CommonToolTipActions';
 import { useSettings } from '../hooks/context/useSettings';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useTheme } from './themes';
+import { BlueText, Styles } from '../BlueComponents';
 
 export const TotalWalletsBalancePreferredUnit = 'TotalWalletsBalancePreferredUnit';
 export const TotalWalletsBalanceKey = 'TotalWalletsBalance';
@@ -44,7 +45,7 @@ const TotalWalletsBalance: React.FC = React.memo(() => {
             hidden: totalBalancePreferredUnit === BitcoinUnit.LOCAL_CURRENCY,
           },
           { ...CommonToolTipActions.ViewInSats, hidden: totalBalancePreferredUnit === BitcoinUnit.SATS },
-          { ...CommonToolTipActions.ViewInBitcoin, hidden: totalBalancePreferredUnit === BitcoinUnit.BTC },
+          { ...CommonToolTipActions.ViewInBitcoin, hidden: totalBalancePreferredUnit === BitcoinUnit.ECR },
         ],
       },
       CommonToolTipActions.CopyAmount,
@@ -64,7 +65,7 @@ const TotalWalletsBalance: React.FC = React.memo(() => {
           await setTotalBalancePreferredUnitStorage(BitcoinUnit.SATS);
           break;
         case CommonToolTipActions.ViewInBitcoin.id:
-          await setTotalBalancePreferredUnitStorage(BitcoinUnit.BTC);
+          await setTotalBalancePreferredUnitStorage(BitcoinUnit.ECR);
           break;
         case CommonToolTipActions.Hide.id:
           await setIsTotalBalanceEnabledStorage(false);
@@ -82,11 +83,11 @@ const TotalWalletsBalance: React.FC = React.memo(() => {
   const handleBalanceOnPress = useCallback(async () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const nextUnit =
-      totalBalancePreferredUnit === BitcoinUnit.BTC
+      totalBalancePreferredUnit === BitcoinUnit.ECR
         ? BitcoinUnit.SATS
         : totalBalancePreferredUnit === BitcoinUnit.SATS
           ? BitcoinUnit.LOCAL_CURRENCY
-          : BitcoinUnit.BTC;
+          : BitcoinUnit.ECR;
     await setTotalBalancePreferredUnitStorage(nextUnit);
   }, [totalBalancePreferredUnit, setTotalBalancePreferredUnitStorage]);
 
@@ -95,14 +96,16 @@ const TotalWalletsBalance: React.FC = React.memo(() => {
   return (
     <ToolTipMenu actions={toolTipActions} onPressMenuItem={onPressMenuItem}>
       <View style={styles.container}>
-        <Text style={styles.label}>{loc.wallets.total_balance}</Text>
+        <BlueText bold style={[styles.label, { color: colors.foregroundColor }]}>
+          {loc.wallets.total_balance}
+        </BlueText>
         <TouchableOpacity onPress={handleBalanceOnPress}>
-          <Text style={[styles.balance, { color: colors.foregroundColor }]}>
+          <BlueText style={[styles.balance, { color: colors.foregroundColor }]}>
             {totalBalanceFormatted}{' '}
             {totalBalancePreferredUnit !== BitcoinUnit.LOCAL_CURRENCY && (
-              <Text style={[styles.currency, { color: colors.foregroundColor }]}>{totalBalancePreferredUnit}</Text>
+              <BlueText style={[styles.currency, { color: colors.foregroundColor }]}>{totalBalancePreferredUnit}</BlueText>
             )}
-          </Text>
+          </BlueText>
         </TouchableOpacity>
       </View>
     </ToolTipMenu>
@@ -113,20 +116,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
     alignItems: 'flex-start',
-    padding: 16,
+    paddingHorizontal: 16,
   },
   label: {
-    fontSize: 14,
     marginBottom: 4,
     color: '#9BA0A9',
   },
   balance: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    ...Styles.fonts['P4 Bold'],
   },
   currency: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    ...Styles.fonts['P3 Bold'],
   },
 });
 

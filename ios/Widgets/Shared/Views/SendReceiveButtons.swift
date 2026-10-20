@@ -26,6 +26,6 @@ struct SendReceiveButtons: View {
 
 struct SendReceiveButtons_Previews: PreviewProvider {
     static var previews: some View {
-        SendReceiveButtons().previewContext(WidgetPreviewContext(family: .systemLarge))
+        SendReceiveButtons().previewContext(WidgetPreviewContext(family: .accessoryRectangular))
     }
 }

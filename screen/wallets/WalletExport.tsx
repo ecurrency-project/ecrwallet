@@ -1,23 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { Icon } from '@rneui/themed';
 import { LayoutChangeEvent, ScrollView, StyleSheet, Pressable, View } from 'react-native';
 import { useScreenProtect } from '../../hooks/useScreenProtect';
 import { validateMnemonic } from '../../blue_modules/bip39';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
 import { BlueText } from '../../BlueComponents';
-import { LightningCustodianWallet, WatchOnlyWallet } from '../../class';
-import HandOffComponent from '../../components/HandOffComponent';
+import { WatchOnlyWallet } from '../../class';
 import QRCodeComponent from '../../components/QRCodeComponent';
 import SeedWords from '../../components/SeedWords';
 import { useTheme } from '../../components/themes';
-import { HandOffActivityType } from '../../components/types';
 import { useSettings } from '../../hooks/context/useSettings';
 import { useStorage } from '../../hooks/context/useStorage';
 import useAppState from '../../hooks/useAppState';
 import loc from '../../loc';
 import { WalletExportStackParamList } from '../../navigation/WalletExportStack';
+import CopyIcon from '../../img/icons/CopyIcon.tsx';
 
 type RouteProps = RouteProp<WalletExportStackParamList, 'WalletExport'>;
 
@@ -37,7 +35,7 @@ const CopyBox: React.FC<{ text: string; onPress: () => void }> = ({ text, onPres
         </BlueText>
       </View>
       <View style={styles.copyRight}>
-        <Icon name="copy" type="font-awesome-5" color={colors.foregroundColor} />
+        <CopyIcon size={24} color={colors.foregroundColor} />
       </View>
     </Pressable>
   );
@@ -47,8 +45,7 @@ const DoNotDisclose: React.FC = () => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.warningBox, { backgroundColor: colors.changeText }]}>
-      <Icon type="font-awesome-5" name="exclamation-circle" color="white" />
+    <View style={[styles.warningBox, { backgroundColor: colors.redText }]}>
       <BlueText style={styles.warning}>{loc.wallets.warning_do_not_disclose}</BlueText>
     </View>
   );
@@ -191,15 +188,9 @@ const WalletExport: React.FC = () => {
         </>
       ) : (
         <>
-          <BlueText style={styles.writeText}>
-            {wallet.type === LightningCustodianWallet.type ? loc.wallets.copy_ln_url : loc.wallets.copy_ln_public}
-          </BlueText>
+          <BlueText style={styles.writeText}>{loc.wallets.copy_ln_public}</BlueText>
           <CopyBox text={secret} onPress={handleCopy} />
         </>
-      )}
-
-      {wallet.type === WatchOnlyWallet.type && (
-        <HandOffComponent title={loc.wallets.xpub_title} type={HandOffActivityType.Xpub} userInfo={{ xpub: secret }} />
       )}
 
       <BlueText style={styles.typeText}>{loc.formatString(loc.wallets.wallet_type_this, { type: wallet.typeReadable })}</BlueText>
@@ -217,34 +208,33 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   warningBox: {
-    alignItems: 'center',
     padding: 12,
     borderRadius: 10,
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    gap: 8,
   },
   warning: {
-    fontSize: 20,
     color: 'white',
   },
   scanText: {
     textAlign: 'center',
     fontSize: 20,
+    lineHeight: 24,
   },
   writeText: {
     textAlign: 'center',
     fontSize: 17,
+    lineHeight: 21,
   },
   manualText: {
     textAlign: 'center',
     fontSize: 20,
+    lineHeight: 24,
     marginBottom: 10,
   },
   typeText: {
     textAlign: 'center',
     fontSize: 17,
     color: 'grey',
+    lineHeight: 21,
   },
   copyRoot: {
     padding: 10,

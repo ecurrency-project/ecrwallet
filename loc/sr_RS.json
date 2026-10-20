@@ -8,5 +8,8 @@
     "yes": "Da",
     "no": "Ne",
     "wallet_key": "Ključ novčanika"
+  },
+  "send": {
+    "min_amount": "Minimalni iznos je {amount}"
   }
 }

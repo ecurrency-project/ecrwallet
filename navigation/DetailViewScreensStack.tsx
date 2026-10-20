@@ -1,10 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
+import React, { useMemo } from 'react';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import HeaderRightButton from '../components/HeaderRightButton';
 import navigationStyle, { CloseButtonPosition } from '../components/navigationStyle';
 import { useTheme } from '../components/themes';
-import { useExtendedNavigation } from '../hooks/useExtendedNavigation';
 import loc from '../loc';
 import LNDViewAdditionalInvoiceInformation from '../screen/lnd/LNDViewAdditionalInvoiceInformation';
 import LNDViewAdditionalInvoicePreImage from '../screen/lnd/lndViewAdditionalInvoicePreImage';
@@ -12,78 +9,70 @@ import LNDViewInvoice from '../screen/lnd/lndViewInvoice';
 import LnurlAuth from '../screen/lnd/lnurlAuth';
 import LnurlPay from '../screen/lnd/lnurlPay';
 import LnurlPaySuccess from '../screen/lnd/lnurlPaySuccess';
-import Broadcast from '../screen/send/Broadcast';
-import IsItMyAddress from '../screen/settings/IsItMyAddress';
 import Success from '../screen/send/success';
 import CPFP from '../screen/transactions/CPFP';
-import TransactionDetails from '../screen/transactions/TransactionDetails';
 import RBFBumpFee from '../screen/transactions/RBFBumpFee';
 import RBFCancel from '../screen/transactions/RBFCancel';
 import TransactionStatus from '../screen/transactions/TransactionStatus';
 import WalletAddresses from '../screen/wallets/WalletAddresses';
 import WalletDetails from '../screen/wallets/WalletDetails';
-import GenerateWord from '../screen/wallets/generateWord';
 import SelectWallet from '../screen/wallets/SelectWallet';
 import WalletsList from '../screen/wallets/WalletsList';
 import { DetailViewStack } from './index';
 import PaymentCodesListComponent from './LazyLoadPaymentCodeStack';
-import SettingsButton from '../components/icons/SettingsButton';
 import { useSettings } from '../hooks/context/useSettings';
 import { useStorage } from '../hooks/context/useStorage';
 import WalletTransactions from '../screen/wallets/WalletTransactions';
-import AddWalletButton from '../components/AddWalletButton';
 import Settings from '../screen/settings/Settings';
 import Currency from '../screen/settings/Currency';
 import GeneralSettings from '../screen/settings/GeneralSettings';
 import PlausibleDeniability from '../screen/PlausibleDeniability';
 import Licensing from '../screen/settings/Licensing';
-import NetworkSettings from '../screen/settings/NetworkSettings';
 import SettingsBlockExplorer from '../screen/settings/SettingsBlockExplorer';
 import About from '../screen/settings/About';
 import DefaultView from '../screen/settings/DefaultView';
-import ElectrumSettings from '../screen/settings/ElectrumSettings';
 import EncryptStorage from '../screen/settings/EncryptStorage';
 import Language from '../screen/settings/Language';
 import LightningSettings from '../screen/settings/LightningSettings';
 import NotificationSettings from '../screen/settings/NotificationSettings';
 import SelfTest from '../screen/settings/SelfTest';
-import ReleaseNotes from '../screen/settings/ReleaseNotes';
-import ToolsScreen from '../screen/settings/tools';
 import SettingsPrivacy from '../screen/settings/SettingsPrivacy';
 import { useSizeClass, SizeClass } from '../blue_modules/sizeClass';
 import getWalletTransactionsOptions from './helpers/getWalletTransactionsOptions';
 import { isDesktop } from '../blue_modules/environment';
 import ManageWallets from '../screen/wallets/ManageWallets';
 import ReceiveDetails from '../screen/receive/ReceiveDetails';
+import CustomHeader from '../components/CustomHeader.tsx';
+import GoBackWithTitleHeader from './components/GoBackWithTitleHeader.tsx';
+import NetworkSettings from '../screen/settings/NetworkSettings.tsx';
+import ElectrumSettings from '../screen/settings/ElectrumSettings.tsx';
+
+const SettingsHeader = () => <GoBackWithTitleHeader title={loc.settings.header} />;
+const CurrencyHeader = () => <GoBackWithTitleHeader title={loc.settings.currency} />;
+const LanguageHeader = () => <GoBackWithTitleHeader title={loc.settings.language} />;
+const NotificationHeader = () => <GoBackWithTitleHeader title={loc.settings.notifications} />;
+const GeneralSettingsHeader = () => <GoBackWithTitleHeader title={loc.settings.general} />;
+const SecurityHeader = () => <GoBackWithTitleHeader title={loc.settings.encrypt_title} />;
+const AboutHeader = () => <GoBackWithTitleHeader title={loc.settings.about} />;
+const DefaultViewHeader = () => <GoBackWithTitleHeader title={loc.settings.default_title} />;
+const SettingsPrivacyHeader = () => <GoBackWithTitleHeader title={loc.settings.privacy} />;
+const SelectWalletHeader = () => <GoBackWithTitleHeader title={loc.wallets.select_wallet} />;
+const PlausibleDeniabilityHeader = () => <GoBackWithTitleHeader title={loc.plausibledeniability.title} />;
+const WalletAddressesHeader = () => <GoBackWithTitleHeader title={loc.addresses.addresses_title} />;
+const SelfTestHeader = () => <GoBackWithTitleHeader title={loc.settings.selfTest} />;
+const LicensingHeader = () => <GoBackWithTitleHeader title={loc.settings.license} />;
+const WalletListHeader = () => (isDesktop ? undefined : <CustomHeader />);
+const NetworkSettingsHeader = () => <GoBackWithTitleHeader title={loc.settings.network} />;
+const ElectrumSettingsHeader = () => <GoBackWithTitleHeader title={loc.settings.electrum_settings_server} />;
+const SettingsBlockExplorerHeader = () => <GoBackWithTitleHeader title={loc.settings.block_explorer} />;
 
 const DetailViewStackScreensStack = () => {
   const theme = useTheme();
-  const navigation = useExtendedNavigation();
   const { wallets } = useStorage();
   const { isTotalBalanceEnabled } = useSettings();
   const { sizeClass } = useSizeClass();
 
-  const DetailButton = useMemo(() => <HeaderRightButton testID="DetailButton" disabled={true} title={loc.send.create_details} />, []);
-
-  const navigateToAddWallet = useCallback(() => {
-    navigation.navigate('AddWalletRoot');
-  }, [navigation]);
-
-  const RightBarButtons = useMemo(
-    () =>
-      sizeClass === SizeClass.Large ? (
-        <SettingsButton />
-      ) : (
-        <>
-          <AddWalletButton onPress={navigateToAddWallet} />
-          <View style={styles.width24} />
-          <SettingsButton />
-        </>
-      ),
-    [sizeClass, navigateToAddWallet],
-  );
-
-  const useWalletListScreenOptions = useMemo<NativeStackNavigationOptions>(() => {
+  const walletListScreenOptions = useMemo<NativeStackNavigationOptions>(() => {
     const displayTitle = !isTotalBalanceEnabled || wallets.length <= 1;
     return {
       title: sizeClass === SizeClass.Large ? loc.transactions.list_title : displayTitle ? loc.wallets.wallets : '',
@@ -93,11 +82,9 @@ const DetailViewStackScreensStack = () => {
       headerStyle: {
         backgroundColor: theme.colors.customHeader,
       },
-      headerRight: () => (isDesktop ? undefined : RightBarButtons),
+      header: WalletListHeader,
     };
-  }, [RightBarButtons, sizeClass, isTotalBalanceEnabled, theme.colors.customHeader, theme.colors.navigationBarColor, wallets]);
-
-  const walletListScreenOptions = useWalletListScreenOptions;
+  }, [sizeClass, isTotalBalanceEnabled, theme.colors.customHeader, theme.colors.navigationBarColor, wallets]);
 
   return (
     <DetailViewStack.Navigator
@@ -110,19 +97,7 @@ const DetailViewStackScreensStack = () => {
         name="WalletDetails"
         component={WalletDetails}
         options={navigationStyle({
-          headerTitle: loc.wallets.details_title,
           statusBarStyle: 'auto',
-        })(theme)}
-      />
-      <DetailViewStack.Screen
-        name="TransactionDetails"
-        component={TransactionDetails}
-        options={navigationStyle({
-          statusBarStyle: 'auto',
-          headerStyle: {
-            backgroundColor: theme.colors.customHeader,
-          },
-          headerTitle: loc.transactions.details_title,
         })(theme)}
       />
       <DetailViewStack.Screen
@@ -134,12 +109,6 @@ const DetailViewStackScreensStack = () => {
         }}
         options={navigationStyle({
           statusBarStyle: 'auto',
-          headerStyle: {
-            backgroundColor: theme.colors.customHeader,
-          },
-          headerTitle: '',
-          headerRight: () => DetailButton,
-          headerBackButtonDisplayMode: 'default',
         })(theme)}
       />
       <DetailViewStack.Screen name="CPFP" component={CPFP} options={navigationStyle({ title: loc.transactions.cpfp_title })(theme)} />
@@ -156,7 +125,7 @@ const DetailViewStackScreensStack = () => {
       <DetailViewStack.Screen
         name="SelectWallet"
         component={SelectWallet}
-        options={navigationStyle({ title: loc.wallets.select_wallet })(theme)}
+        options={navigationStyle({ header: SelectWalletHeader })(theme)}
       />
       <DetailViewStack.Screen
         name="LNDViewInvoice"
@@ -178,23 +147,6 @@ const DetailViewStackScreensStack = () => {
         name="LNDViewAdditionalInvoicePreImage"
         component={LNDViewAdditionalInvoicePreImage}
         options={navigationStyle({ title: loc.lndViewInvoice.additional_info })(theme)}
-      />
-
-      <DetailViewStack.Screen
-        name="Broadcast"
-        component={Broadcast}
-        options={navigationStyle({ title: loc.send.create_broadcast })(theme)}
-      />
-      <DetailViewStack.Screen
-        name="IsItMyAddress"
-        component={IsItMyAddress}
-        initialParams={{ address: undefined }}
-        options={navigationStyle({ title: loc.is_it_my_address.title })(theme)}
-      />
-      <DetailViewStack.Screen
-        name="GenerateWord"
-        component={GenerateWord}
-        options={navigationStyle({ title: loc.autofill_word.title })(theme)}
       />
       <DetailViewStack.Screen
         name="LnurlPay"
@@ -232,61 +184,54 @@ const DetailViewStackScreensStack = () => {
       <DetailViewStack.Screen
         name="WalletAddresses"
         component={WalletAddresses}
-        options={navigationStyle({ title: loc.addresses.addresses_title, statusBarStyle: 'auto' })(theme)}
+        options={navigationStyle({
+          header: WalletAddressesHeader,
+        })(theme)}
       />
 
       <DetailViewStack.Screen
         name="Settings"
         component={Settings}
         options={navigationStyle({
-          title: loc.settings.header,
-          headerBackButtonDisplayMode: 'default',
-          headerShadowVisible: false,
-          headerLargeTitle: true,
-          animationTypeForReplace: 'push',
+          header: SettingsHeader,
         })(theme)}
       />
-      <DetailViewStack.Screen name="Currency" component={Currency} options={navigationStyle({ title: loc.settings.currency })(theme)} />
+      <DetailViewStack.Screen name="Currency" component={Currency} options={navigationStyle({ header: CurrencyHeader })(theme)} />
       <DetailViewStack.Screen
         name="GeneralSettings"
         component={GeneralSettings}
-        options={navigationStyle({ title: loc.settings.general })(theme)}
+        options={navigationStyle({ header: GeneralSettingsHeader })(theme)}
       />
       <DetailViewStack.Screen
         name="PlausibleDeniability"
         component={PlausibleDeniability}
-        options={navigationStyle({ title: loc.plausibledeniability.title })(theme)}
+        options={navigationStyle({ header: PlausibleDeniabilityHeader })(theme)}
       />
-      <DetailViewStack.Screen name="Licensing" component={Licensing} options={navigationStyle({ title: loc.settings.license })(theme)} />
-      <DetailViewStack.Screen
-        name="NetworkSettings"
-        component={NetworkSettings}
-        options={navigationStyle({ title: loc.settings.network })(theme)}
-      />
+      <DetailViewStack.Screen name="Licensing" component={Licensing} options={navigationStyle({ header: LicensingHeader })(theme)} />
       <DetailViewStack.Screen
         name="SettingsBlockExplorer"
         component={SettingsBlockExplorer}
-        options={navigationStyle({ title: loc.settings.block_explorer })(theme)}
+        options={navigationStyle({ header: SettingsBlockExplorerHeader })(theme)}
       />
-
-      <DetailViewStack.Screen name="About" component={About} options={navigationStyle({ title: loc.settings.about })(theme)} />
       <DetailViewStack.Screen
-        name="DefaultView"
-        component={DefaultView}
-        options={navigationStyle({ title: loc.settings.default_title })(theme)}
+        name="NetworkSettings"
+        component={NetworkSettings}
+        options={navigationStyle({ header: NetworkSettingsHeader })(theme)}
       />
       <DetailViewStack.Screen
         name="ElectrumSettings"
         component={ElectrumSettings}
-        options={navigationStyle({ title: loc.settings.electrum_settings_server })(theme)}
-        initialParams={{ server: undefined }}
+        options={navigationStyle({ header: ElectrumSettingsHeader })(theme)}
       />
+
+      <DetailViewStack.Screen name="About" component={About} options={navigationStyle({ header: AboutHeader })(theme)} />
+      <DetailViewStack.Screen name="DefaultView" component={DefaultView} options={navigationStyle({ header: DefaultViewHeader })(theme)} />
       <DetailViewStack.Screen
         name="EncryptStorage"
         component={EncryptStorage}
-        options={navigationStyle({ title: loc.settings.encrypt_title })(theme)}
+        options={navigationStyle({ header: SecurityHeader })(theme)}
       />
-      <DetailViewStack.Screen name="Language" component={Language} options={navigationStyle({ title: loc.settings.language })(theme)} />
+      <DetailViewStack.Screen name="Language" component={Language} options={navigationStyle({ header: LanguageHeader })(theme)} />
       <DetailViewStack.Screen
         name="LightningSettings"
         component={LightningSettings}
@@ -295,36 +240,26 @@ const DetailViewStackScreensStack = () => {
       <DetailViewStack.Screen
         name="NotificationSettings"
         component={NotificationSettings}
-        options={navigationStyle({ title: loc.settings.notifications })(theme)}
+        options={navigationStyle({ header: NotificationHeader })(theme)}
       />
-      <DetailViewStack.Screen name="SelfTest" component={SelfTest} options={navigationStyle({ title: loc.settings.selfTest })(theme)} />
-      <DetailViewStack.Screen
-        name="ReleaseNotes"
-        component={ReleaseNotes}
-        options={navigationStyle({ title: loc.settings.about_release_notes })(theme)}
-      />
-      <DetailViewStack.Screen name="ToolsScreen" component={ToolsScreen} options={navigationStyle({ title: loc.settings.tools })(theme)} />
+      <DetailViewStack.Screen name="SelfTest" component={SelfTest} options={navigationStyle({ header: SelfTestHeader })(theme)} />
       <DetailViewStack.Screen
         name="SettingsPrivacy"
         component={SettingsPrivacy}
-        options={navigationStyle({ title: loc.settings.privacy })(theme)}
+        options={navigationStyle({ header: SettingsPrivacyHeader })(theme)}
       />
       <DetailViewStack.Screen
         name="ManageWallets"
         component={ManageWallets}
         options={{
           presentation: 'fullScreenModal',
-          title: loc.wallets.manage_title,
-          statusBarStyle: 'auto',
-          headerShown: true,
+          header: () => null,
         }}
       />
       <DetailViewStack.Screen
         name="ReceiveDetails"
         component={ReceiveDetails}
         options={navigationStyle({
-          title: loc.receive.header,
-          closeButtonPosition: CloseButtonPosition.Left,
           statusBarStyle: 'light',
           headerShown: true,
           presentation: 'modal',
@@ -335,13 +270,3 @@ const DetailViewStackScreensStack = () => {
 };
 
 export default DetailViewStackScreensStack;
-
-const styles = {
-  width24: {
-    width: 24,
-  },
-  walletDetails: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-};

@@ -49,7 +49,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Vytvoriť falošné zašifrované úložisko",
     "create_password_explanation": "Heslo k falošnému úložisku nesmie byť rovnaké ako heslo k hlavnému úložisku",
-    "help": "Za určitých okolností môžete byť donútení k prezradeniu hesla. K zaisteniu bezpečnosti vaších prostriedkov, BlueWallet môže vytvořiť ďalšie zašifrované úložiská s rozdielným heslom. V prípade potreby môžete toto heslo dať tretej strane. Pokiaľ bude zadané do BlueWallet, odomkne nové \"falošné\" úložisko. Toto bude vyzerať hodnoverne, ale udrží vaše pravé hlavné úložisko v bezpečí.",
+    "help": "Za určitých okolností môžete byť donútení k prezradeniu hesla. K zaisteniu bezpečnosti vaších prostriedkov, ECRWallet môže vytvořiť ďalšie zašifrované úložiská s rozdielným heslom. V prípade potreby môžete toto heslo dať tretej strane. Pokiaľ bude zadané do ECRWallet, odomkne nové \"falošné\" úložisko. Toto bude vyzerať hodnoverne, ale udrží vaše pravé hlavné úložisko v bezpečí.",
     "help2": "Nové úložisko bude plne funkčné, môžete naň uložiť minimálnu čiastku, aby vyzeralo uveriteľnejšie.",
     "password_should_not_match": "Heslo k falošnému úložisku nesmie byť rovnaké ako heslo k hlavnému úložisku",
     "title": "Plausible deniability..."
@@ -66,6 +66,7 @@
     "header": "Prijať"
   },
   "send": {
+    "min_amount": "Minimálna suma je {amount}",
     "broadcastButton": "Odoslať",
     "broadcastError": "chyba",
     "broadcastPending": "Čaká...",
@@ -110,13 +111,13 @@
     "success_done": "Hotovo"
   },
   "settings": {
-    "about": "O BlueWallet",
+    "about": "O ECRWallet",
     "about_backup": "Vždy si zálohujte kľúče!",
-    "about_free": "BlueWallet je projekt, ktorý je zdarma a s otvorenými zdrojovými kódmi. Vytvorený používateľmi Bitcoinu.",
+    "about_free": "ECRWallet je projekt, ktorý je zdarma a s otvorenými zdrojovými kódmi. Vytvorený používateľmi Bitcoinu.",
     "about_review": "Napíšte nám recenziu",
     "about_sm_github": "GitHub",
     "about_sm_telegram": "Telegram chat",
-    "about_sm_twitter": "Sledujte nás na Twitteri",
+    "about_sm_twitter": "Sledujte nás na X(Twitter)",
     "currency": "Mena",
     "default_wallets": "Zobraziť všetky peňaženky",
     "electrum_saved": "Vaše zmeny boli úspešne uložené. Aby sa zmeny prejavili, môže byť potrebný reštart.",
@@ -143,6 +144,7 @@
     "saved": "Uložené"
   },
   "transactions": {
+    "block_height": "Výška bloku",
     "cancel_no": "Táto transakcia sa nedá nahradiť",
     "cancel_title": "Zrušiť transakciu (RBF)",
     "cpfp_create": "Vytvoriť",
@@ -154,6 +156,7 @@
     "details_inputs": "Vstupy",
     "details_outputs": "Výstupy",
     "details_received": "Prijaté",
+    "details_sent": "Odoslané",
     "details_title": "Transakcia",
     "details_to": "Výstup",
     "pending": "Čaká...",
@@ -208,7 +211,7 @@
     "list_long_scan": "Skenovať QR kód",
     "list_title": "peňaženky",
     "list_tryagain": "Skúste znovu",
-    "select_no_bitcoin": "Žiadne Bitcoinové peňaženky nie sú k dispozícii.",
+    "select_no_bitcoin": "Žiadne Ecurrency peňaženky nie sú k dispozícii.",
     "select_wallet": "Vyberte peňaženku",
     "xpub_copiedToClipboard": "Skopírované do schránky.",
     "xpub_title": "XPUB peňaženku"

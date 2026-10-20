@@ -1,9 +1,9 @@
 import BigNumber from 'bignumber.js';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import bitcoinMessage from 'bitcoinjs-message';
 import coinSelect, { CoinSelectOutput, CoinSelectReturnInput, CoinSelectTarget } from 'coinselect';
 import coinSelectSplit from 'coinselect/split';
-import { ECPairAPI, ECPairFactory, Signer } from 'ecpair';
+import { ECPairAPI, ECPairFactory, Signer } from '@qbtc/ecpair';
 
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import ecc from '../../blue_modules/noble_ecc';

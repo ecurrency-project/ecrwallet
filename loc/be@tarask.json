@@ -38,6 +38,7 @@
     "expired": "Скончыўся"
   },
   "send": {
+    "min_amount": "Мінімальная сума — {amount}",
     "broadcastError": "Памылка",
     "broadcastSuccess": "Посьпех",
     "create_to": "Да"

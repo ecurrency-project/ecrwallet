@@ -1,0 +1,110 @@
+diff --git a/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/CaptureProtectionModule.kt b/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/CaptureProtectionModule.kt
+index 5c885f6..2e1c525 100644
+--- a/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/CaptureProtectionModule.kt
++++ b/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/CaptureProtectionModule.kt
+@@ -22,7 +22,7 @@ class CaptureProtectionModule(private val reactContext: ReactApplicationContext)
+ 
+   @ReactMethod
+   fun hasListener(promise: Promise) {
+-    currentActivity?.runOnUiThread {
++    reactContext.currentActivity?.runOnUiThread {
+       try {
+         val params = super.hasScreenCaptureListener()
+         promise.resolve(params)
+@@ -34,7 +34,7 @@ class CaptureProtectionModule(private val reactContext: ReactApplicationContext)
+ 
+   @ReactMethod
+   fun isScreenRecording(promise: Promise) {
+-    currentActivity?.runOnUiThread {
++    reactContext.currentActivity?.runOnUiThread {
+       try {
+         promise.resolve(super.screens.size > 1)
+       } catch (e: Exception) {
+@@ -45,7 +45,7 @@ class CaptureProtectionModule(private val reactContext: ReactApplicationContext)
+ 
+   @ReactMethod
+   fun prevent(promise: Promise) {
+-    currentActivity?.runOnUiThread {
++    reactContext.currentActivity?.runOnUiThread {
+       try {
+         val currentActivity = ActivityUtils.getReactCurrentActivity(reactContext)
+         currentActivity!!.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+@@ -65,7 +65,7 @@ class CaptureProtectionModule(private val reactContext: ReactApplicationContext)
+ 
+   @ReactMethod
+   fun allow(promise: Promise) {
+-    currentActivity?.runOnUiThread {
++    reactContext.currentActivity?.runOnUiThread {
+       try {
+         val currentActivity = ActivityUtils.getReactCurrentActivity(reactContext)
+         currentActivity!!.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+@@ -83,7 +83,7 @@ class CaptureProtectionModule(private val reactContext: ReactApplicationContext)
+ 
+   @ReactMethod
+   fun protectionStatus(promise: Promise) {
+-    currentActivity?.runOnUiThread {
++    reactContext.currentActivity?.runOnUiThread {
+       try {
+         val flags = ActivityUtils.isSecureFlag(reactContext)
+         promise.resolve(flags)
+diff --git a/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/android/utils/FileUtils.kt b/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/android/utils/FileUtils.kt
+index 135b5e3..07ecfb3 100644
+--- a/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/android/utils/FileUtils.kt
++++ b/node_modules/react-native-capture-protection/android/src/main/java/com/captureprotection/android/utils/FileUtils.kt
+@@ -26,7 +26,7 @@ class FileUtils {
+                         )
+                 if (cursor != null && cursor.moveToFirst()) {
+                     val path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
+-                    return (path != null && path.toLowerCase().contains("screenshots"))
++                    return (path != null && path.lowercase().contains("screenshots"))
+                 }
+                 return false
+             } finally {
+diff --git a/node_modules/react-native-capture-protection/react-native-capture-protection.podspec b/node_modules/react-native-capture-protection/react-native-capture-protection.podspec
+index 03f7787..637cfc2 100644
+--- a/node_modules/react-native-capture-protection/react-native-capture-protection.podspec
++++ b/node_modules/react-native-capture-protection/react-native-capture-protection.podspec
+@@ -16,20 +16,29 @@ Pod::Spec.new do |s|
+ 
+   s.source_files = "ios/**/*.{h,m,mm,swift}"
+ 
+-  s.dependency "React-Core"
++  # React Native 0.81+ ships its third-party C++ deps as the prebuilt
++  # `ReactNativeDependencies` pod, so `RCT-Folly` is no longer vended as a
++  # separate podspec (and `React-Codegen` was renamed to `ReactCodegen`).
++  # `install_modules_dependencies` declares whatever the installed RN version
++  # actually provides. Same fix as upstream 2.4.1.
++  if respond_to?(:install_modules_dependencies, true)
++    install_modules_dependencies(s)
++  else
++    s.dependency "React-Core"
+ 
+-  # Don't install the dependencies when we run `pod install` in the old architecture.
+-  if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
+-    s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
+-    s.pod_target_xcconfig    = {
+-        "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
+-        "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1",
+-        "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+-    }
+-    s.dependency "React-Codegen"
+-    s.dependency "RCT-Folly"
+-    s.dependency "RCTRequired"
+-    s.dependency "RCTTypeSafety"
+-    s.dependency "ReactCommon/turbomodule/core"
++    # Don't install the dependencies when we run `pod install` in the old architecture.
++    if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
++      s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
++      s.pod_target_xcconfig    = {
++          "HEADER_SEARCH_PATHS" => "\"$(PODS_ROOT)/boost\"",
++          "OTHER_CPLUSPLUSFLAGS" => "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1",
++          "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
++      }
++      s.dependency "React-Codegen"
++      s.dependency "RCT-Folly"
++      s.dependency "RCTRequired"
++      s.dependency "RCTTypeSafety"
++      s.dependency "ReactCommon/turbomodule/core"
++    end
+   end
+ end

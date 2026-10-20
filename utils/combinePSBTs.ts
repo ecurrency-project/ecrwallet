@@ -1,4 +1,4 @@
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 
 /**
  * Combines two PSBTs and returns the combined PSBT.

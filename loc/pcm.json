@@ -25,6 +25,7 @@
     "minSatsFull": "Minimal amount na {min} sats or {currency}"
   },
   "send": {
+    "min_amount": "Di smallest amount na {amount}",
     "broadcastPending": "Pend",
     "broadcastSuccess": "You correct",
     "confirm_header": "Confam",
@@ -42,7 +43,7 @@
     "about_sm_github": "GitHub",
     "about_sm_discord": "Discord Server",
     "about_sm_telegram": "Telegram channel",
-    "about_sm_twitter": "Follow us for Twitter na",
+    "about_sm_twitter": "Follow us for X(Twitter) na",
     "biom_10times": "Na like 10 times you don enter password, You go like reset your storage? This one go comot all your wallets and e go decrypt your storage.",
     "biom_conf_identity": "Abeg confirm who you be.",
     "currency_fetch_error": "Error dey as we dey find rate for the currency you select. ",
@@ -52,6 +53,7 @@
     "electrum_unable_to_connect": "We nor fit connect to [server]"
   },
   "transactions": {
+    "block_height": "Block height",
     "pending": "Pend"
   },
   "multisig": {

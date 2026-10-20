@@ -4,11 +4,11 @@ import assert from 'assert';
 import BigNumber from 'bignumber.js';
 import BIP32Factory, { BIP32Interface } from 'bip32';
 import * as bip39 from 'bip39';
-import * as bitcoin from 'bitcoinjs-lib';
-import { Psbt, Transaction as BTransaction } from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
+import { Psbt, Transaction as BTransaction } from '@qbtc/bitcoinjs-lib';
 import b58 from 'bs58check';
 import { CoinSelectOutput, CoinSelectReturnInput } from 'coinselect';
-import { ECPairFactory, ECPairInterface } from 'ecpair';
+import { ECPairFactory, ECPairInterface } from '@qbtc/ecpair';
 
 import * as BlueElectrum from '../../blue_modules/BlueElectrum';
 import { ElectrumHistory } from '../../blue_modules/BlueElectrum';
@@ -583,7 +583,9 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
         }
       }
     // hack: in case this code is called from LegacyWallet:
-    if (this.getAddress()) ownedAddressesHashmap[String(this.getAddress())] = true;
+    if (this.getAddress()) {
+      ownedAddressesHashmap[String(this.getAddress())] = true;
+    }
 
     const ret: Transaction[] = [];
     for (const tx of txs) {
@@ -595,14 +597,14 @@ export class AbstractHDElectrumWallet extends AbstractHDWallet {
 
       for (const vin of tx.inputs) {
         // if input (spending) goes from our address - we are loosing!
-        if ((vin.address && ownedAddressesHashmap[vin.address]) || (vin.addresses?.[0] && ownedAddressesHashmap[vin.addresses[0]])) {
+        if (vin.addresses?.[0] && ownedAddressesHashmap[vin.addresses[0]]) {
           tx.value -= new BigNumber(vin.value ?? 0).multipliedBy(100000000).toNumber();
         }
       }
 
       for (const vout of tx.outputs) {
         // when output goes to our address - this means we are gaining!
-        if (vout.scriptPubKey.addresses?.[0] && ownedAddressesHashmap[vout.scriptPubKey.addresses[0]]) {
+        if (vout.address && ownedAddressesHashmap[vout.address]) {
           tx.value += new BigNumber(vout.value).multipliedBy(100000000).toNumber();
         }
       }

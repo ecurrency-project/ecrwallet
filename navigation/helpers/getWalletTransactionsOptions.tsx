@@ -1,16 +1,14 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Icon } from '@rneui/themed';
-import WalletGradient from '../../class/wallet-gradient';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
 import { DetailViewStackParamList } from '../DetailViewStackParamList';
 import { navigationRef } from '../../NavigationService';
-import { RouteProp } from '@react-navigation/native';
+import { WalletTransactionsHeader } from '../../components/WalletTransactionsHeader.tsx';
 
 export type WalletTransactionsRouteProps = RouteProp<DetailViewStackParamList, 'WalletTransactions'>;
 
 const getWalletTransactionsOptions = ({ route }: { route: WalletTransactionsRouteProps }): NativeStackNavigationOptions => {
-  const { isLoading = false, walletID, walletType } = route.params;
+  const { walletID } = route.params;
 
   const onPress = () => {
     navigationRef.navigate('WalletDetails', {
@@ -18,33 +16,16 @@ const getWalletTransactionsOptions = ({ route }: { route: WalletTransactionsRout
     });
   };
 
-  const RightButton = (
-    <TouchableOpacity accessibilityRole="button" testID="WalletDetails" disabled={isLoading} style={styles.walletDetails} onPress={onPress}>
-      <Icon name="more-horiz" type="material" size={22} color="#FFFFFF" />
-    </TouchableOpacity>
-  );
-
-  const backgroundColor = WalletGradient.headerColorFor(walletType);
+  const onPressBack = () => {
+    navigationRef.goBack();
+  };
 
   return {
-    title: '',
-    headerBackTitleStyle: { fontSize: 0 },
-    headerStyle: {
-      backgroundColor,
-    },
     headerShadowVisible: false,
     headerTintColor: '#FFFFFF',
-    statusBarBackgroundColor: backgroundColor,
     headerBackTitle: undefined,
-    headerRight: () => RightButton,
+    header: () => <WalletTransactionsHeader onPress={onPress} onPressBack={onPressBack} />,
   };
 };
-
-const styles = StyleSheet.create({
-  walletDetails: {
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-});
 
 export default getWalletTransactionsOptions;

@@ -40,7 +40,7 @@
   "plausibledeniability": {
     "create_fake_storage": "Ukudala igumbi lokugcina elifihlakeleyo",
     "create_password_explanation": "Inombolo yakho yokuvula igumbi lokugcina inkohliso akumele ifane ne nombolo yokuvula  igumbi lakho  elinyanisekileyo",
-    "help": "Phantsi kweemeko unokunyaneliswa ukuba uchaze a inombolo yokuvula. BlueWallet ukugcina imali yakho ikhuselekile, unokudala enye ukugcinwa kwekhowudi, ngegama eligqithisiweyo. Phantsi kwefuthe, unako ukutyhila le phasiwedi kumntu wesithatu. Ukuba ungenayo BlueWallet, iya kuvula ukugcinwa kwetyala ‘entsha’. Oku kuya kubonakala Umlenze kumntu wesithathu kodwa uza kugcina ngasese ukugcinwa kwakho ngemali ekhuselekile..",
+    "help": "Phantsi kweemeko unokunyaneliswa ukuba uchaze a inombolo yokuvula. ECRWallet ukugcina imali yakho ikhuselekile, unokudala enye ukugcinwa kwekhowudi, ngegama eligqithisiweyo. Phantsi kwefuthe, unako ukutyhila le phasiwedi kumntu wesithatu. Ukuba ungenayo ECRWallet, iya kuvula ukugcinwa kwetyala ‘entsha’. Oku kuya kubonakala Umlenze kumntu wesithathu kodwa uza kugcina ngasese ukugcinwa kwakho ngemali ekhuselekile..",
     "help2": "Igumbi lokugcina elitsha liza kusebenza ngokupheleleyo, kwaye unako ukugcina okunye ‘ + ‘lxabiso elincinci apho likhangeleka ngakumbi.",
     "password_should_not_match": "Inombolo yakho yokuvula igumbi lokugcina inkohliso akumele ifane ne nombolo yokuvula  igumbi lakho  elinyanisekileyo",
     "title": "Ukuphika"
@@ -52,6 +52,7 @@
     "header": "Fumana"
   },
   "send": {
+    "min_amount": "Isixa esincinci ngu-{amount}",
     "broadcastButton": "Sasazwa",
     "broadcastSuccess": "Iphumelele",
     "confirm_header": "Qiniseka",
@@ -86,6 +87,7 @@
     "save": "ndoloza"
   },
   "transactions": {
+    "block_height": "Ubude bebhloko",
     "cpfp_create": "Yakha",
     "details_copy": "Ikopi",
     "details_from": "Negalelo",
@@ -95,7 +97,7 @@
     "transaction": "Ngeniswa"
   },
   "wallets": {
-    "add_bitcoin_explain": "Simple and powerful Bitcoin wallet",
+    "add_ecurrency_explain": "Simple and powerful Ecurrency wallet",
     "add_create": "Yakha",
     "add_import_wallet": "Ukungenisa ingxowa",
     "add_lightning": "Umbane",

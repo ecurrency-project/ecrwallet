@@ -4,6 +4,7 @@ import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapticFeedback';
 import loc from '../loc';
+import { Styles } from '../BlueComponents';
 
 type CopyTextToClipboardProps = {
   text: string;
@@ -12,8 +13,8 @@ type CopyTextToClipboardProps = {
 
 const styleCopyTextToClipboard = StyleSheet.create({
   address: {
+    ...Styles.fonts['P2 Regular'],
     marginVertical: 32,
-    fontSize: 15,
     color: '#9aa0aa',
     textAlign: 'center',
   },

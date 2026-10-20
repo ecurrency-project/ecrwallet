@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../blue_modules/hapticFeedback';
 import { BlueTextCentered } from '../BlueComponents';
 import Button from '../components/Button';
@@ -146,9 +146,6 @@ const UnlockWith: React.FC = () => {
 
   return (
     <SafeArea style={styles.root}>
-      <View style={styles.container}>
-        <Image source={require('../img/icon.png')} style={styles.logoImage} resizeMode="contain" />
-      </View>
       <View style={styles.biometricRow}>{renderUnlockOptions()}</View>
     </SafeArea>
   );
@@ -156,10 +153,6 @@ const UnlockWith: React.FC = () => {
 
 const styles = StyleSheet.create({
   root: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -172,11 +165,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
     paddingHorizontal: 20,
-  },
-  logoImage: {
-    width: 100,
-    height: 75,
-    alignSelf: 'center',
   },
 });
 

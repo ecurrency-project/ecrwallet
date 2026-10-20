@@ -1,5 +1,5 @@
 import assert from 'assert';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 
 import {
   scanText,
@@ -100,12 +100,8 @@ describe('BlueWallet UI Tests - no wallets', () => {
     await element(by.id('SecurityButton')).tap();
     await device.pressBack();
 
-    // network
-    await element(by.id('NetworkSettings')).tap();
-
     // network -> electrum server
     // change electrum server to electrum.blockstream.info and revert it back
-    await element(by.id('ElectrumSettings')).tap();
     await element(by.id('ElectrumSettingsScrollView')).swipe('up', 'fast', 1); // in case emu screen is small and it doesnt fit
     await element(by.id('HostInput')).replaceText('electrum.blockstream.info\n');
     await element(by.id('PortInput')).replaceText('50001\n');

@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigationState, useRoute, RouteProp } from '@react-navigation/native';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueText } from '../../BlueComponents';
+import { BlueText, Styles } from '../../BlueComponents';
 import SafeArea from '../../components/SafeArea';
 import { useTheme } from '../../components/themes';
 import loc from '../../loc';
@@ -15,6 +16,7 @@ import { pop } from '../../NavigationService';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SendDetailsStackParamList } from '../../navigation/SendDetailsStackParamList';
 import { BlueSpacing20 } from '../../components/BlueSpacing';
+import ArrowLeftIcon from '../../img/icons/ArrowLeftIcon.tsx';
 
 type NavigationProps = NativeStackNavigationProp<SendDetailsStackParamList, 'SelectWallet'>;
 
@@ -38,10 +40,18 @@ const SelectWallet: React.FC = () => {
   const walletsCarousel = useRef<any>(null);
   const previousRouteName = useNavigationState(state => state.routes[state.routes.length - 2]?.name);
   const [filteredWallets, setFilteredWallets] = useState<TWallet[]>([]);
+  const insets = useSafeAreaInsets();
 
   const stylesHook = StyleSheet.create({
     loading: {
       backgroundColor: colors.background,
+    },
+    button: {
+      backgroundColor: colors.lightButton,
+    },
+    header: {
+      backgroundColor: colors.elevated,
+      paddingTop: Platform.select({ ios: 16, android: insets.top + 8 }),
     },
   });
 
@@ -61,9 +71,27 @@ const SelectWallet: React.FC = () => {
     return wallets.filter(item => item.allowSend());
   }, [availableWallets, chainType, onChainRequireSend, wallets]);
 
+  const Header = useMemo(
+    () => (
+      <View style={[styles.headerContainer, stylesHook.header]}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          style={[styles.buttonCross, stylesHook.button]}
+          onPress={navigation.goBack}
+        >
+          <View style={styles.iconContainer}>
+            <ArrowLeftIcon color={colors.foregroundColor} size={24} />
+          </View>
+        </TouchableOpacity>
+        <BlueText style={styles.title}>{loc.wallets.select_wallet}</BlueText>
+        <View style={styles.emptyBlock} />
+      </View>
+    ),
+    [stylesHook, navigation, colors],
+  );
+
   // Initialize filtered wallets and handle loading state
   useEffect(() => {
-    console.log('SelectWallet - useEffect');
     const filtered = filterWallets();
     setFilteredWallets(filtered);
     setIsLoading(false);
@@ -83,8 +111,6 @@ const SelectWallet: React.FC = () => {
               animated: true,
               viewPosition: 0.5, // Center the item
             });
-
-            console.log(`Scrolled to wallet index ${walletIndex} with ID ${selectedWalletID}`);
           }
         }, 200);
       } else {
@@ -98,6 +124,12 @@ const SelectWallet: React.FC = () => {
       statusBarStyle: isLoading || filteredWallets.length === 0 ? 'light' : 'auto',
     });
   }, [isLoading, filteredWallets, navigation]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      header: () => Header,
+    });
+  }, [navigation, Header]);
 
   useEffect(() => {
     if (!isModal) {
@@ -172,5 +204,30 @@ const styles = StyleSheet.create({
   walletsCarousel: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+
+  // Header styles
+  emptyBlock: {
+    width: 38,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  buttonCross: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  iconContainer: {
+    alignSelf: 'center',
+  },
+  title: {
+    ...Styles.fonts['P3 Bold'],
   },
 });

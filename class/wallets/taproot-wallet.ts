@@ -1,5 +1,5 @@
-import * as bitcoin from 'bitcoinjs-lib';
-import { ECPairFactory } from 'ecpair';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
+import { ECPairFactory } from '@qbtc/ecpair';
 
 import ecc from '../../blue_modules/noble_ecc';
 

@@ -4,6 +4,7 @@ import { Avatar, ListItem as RNElementsListItem, Button } from '@rneui/themed'; 
 import { useLocale } from '@react-navigation/native';
 
 import { useTheme } from './themes';
+import { Styles } from '../BlueComponents';
 
 // Update the type for the props
 interface ListItemProps {
@@ -90,23 +91,21 @@ const ListItem: React.FC<ListItemProps> = React.memo(
     const { direction } = useLocale();
     const stylesHook = StyleSheet.create({
       title: {
+        ...Styles.fonts['P3 Bold'],
         color: disabled ? colors.buttonDisabledTextColor : colors.foregroundColor,
-        fontSize: 16,
-        fontWeight: '500',
         writingDirection: direction,
       },
       subtitle: {
+        ...Styles.fonts['P2 Regular'],
         flexWrap: 'wrap',
         writingDirection: direction,
         color: colors.alternativeTextColor,
-        fontWeight: '400',
         paddingVertical: switchProps ? 8 : 0,
-        lineHeight: 20,
-        fontSize: 14,
       },
 
       containerStyle: {
         backgroundColor: colors.background,
+        borderBottomWidth: 0,
       },
     });
 
@@ -166,6 +165,7 @@ const ListItem: React.FC<ListItemProps> = React.memo(
                 iconType="octaicon"
                 checkedIcon="check"
                 checked
+                checkedColor="#fa2b4f"
               />
             )}
           </>

@@ -20,15 +20,15 @@ struct PriceWidget: Widget {
         .configurationDisplayName("Price")
         .description("View the current price of Bitcoin.")
         .supportedFamilies(supportedFamilies)
-        .contentMarginsDisabledIfAvailable() 
+        .contentMarginsDisabledIfAvailable()
     }
 
   @available(iOS 16.0, *)
   private var supportedFamilies: [WidgetFamily] {
         if #available(iOSApplicationExtension 16.0, *) {
-            return [.systemSmall, .accessoryCircular, .accessoryInline, .accessoryRectangular]
+            return [.accessoryCircular, .accessoryInline, .accessoryRectangular]
         } else {
-            return [.systemSmall]
+          return [.accessoryRectangular]
         }
     }
 }
@@ -38,7 +38,7 @@ struct PriceWidget_Previews: PreviewProvider {
   static var previews: some View {
         Group {
             PriceWidgetEntryView(entry: PreviewData.entry)
-                .previewContext(WidgetPreviewContext(family: .systemSmall))
+                .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
             if #available(iOSApplicationExtension 16.0, *) {
                 PriceWidgetEntryView(entry: PreviewData.entry)
                     .previewContext(WidgetPreviewContext(family: .accessoryCircular))
@@ -53,11 +53,11 @@ struct PriceWidget_Previews: PreviewProvider {
 
 let previewMarketData = MarketData(nextBlock: "", sats: "", price: "$10,000", rate: 10000, dateString: "2019-09-18T17:27:00+00:00")
 
-@available(iOS 14.0, *)
+@available(iOS 16.0, *)
 struct PreviewData {
     static let entry = PriceWidgetEntry(
         date: Date(),
-        family: .systemSmall,
+        family: .accessoryRectangular,
         currentMarketData: previewMarketData,
         previousMarketData: emptyMarketData
     )

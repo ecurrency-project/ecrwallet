@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ECPairFactory } from 'ecpair';
+import { ECPairFactory } from '@qbtc/ecpair';
 
 import ecc from '../../blue_modules/noble_ecc';
 

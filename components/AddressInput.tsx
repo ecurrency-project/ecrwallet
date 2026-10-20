@@ -3,6 +3,7 @@ import { StyleProp, StyleSheet, TextInput, View, ViewStyle } from 'react-native'
 import loc from '../loc';
 import { AddressInputScanButton } from './AddressInputScanButton';
 import { useTheme } from './themes';
+import { Styles } from '../BlueComponents';
 
 interface AddressInputProps {
   isLoading?: boolean;
@@ -85,15 +86,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderWidth: 1.0,
     borderBottomWidth: 0.5,
-    minHeight: 44,
-    height: 44,
+    minHeight: 46,
     alignItems: 'center',
-    borderRadius: 4,
+    borderRadius: 24,
   },
   input: {
     flex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     minHeight: 33,
+    ...Styles.fonts['P2 Regular'],
   },
 });
 

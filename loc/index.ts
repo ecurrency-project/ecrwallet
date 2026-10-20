@@ -107,6 +107,9 @@ const setDateTimeLocale = async () => {
     case 'kn':
       require('dayjs/locale/kn');
       break;
+    case 'ky':
+      require('dayjs/locale/ky');
+      break;
     case 'ms':
       require('dayjs/locale/ms');
       break;
@@ -242,6 +245,7 @@ const loc: ILocalization = new Localization({
   lrc: require('./lrc.json'),
   ms: require('./ms.json'),
   kn: require('./kn.json'),
+  ky: require('./ky.json'),
   ne: require('./ne.json'),
   nb_no: require('./nb_no.json'),
   nl_nl: require('./nl_nl.json'),
@@ -320,11 +324,11 @@ export const removeTrailingZeros = (value: number | string): string => {
  */
 export function formatBalance(balance: number, toUnit: string, withFormatting = false): string {
   if (toUnit === undefined) {
-    return balance + ' ' + loc.units[BitcoinUnit.BTC];
+    return balance + ' ' + loc.units[BitcoinUnit.ECR];
   }
-  if (toUnit === BitcoinUnit.BTC) {
+  if (toUnit === BitcoinUnit.ECR) {
     const value = new BigNumber(balance).dividedBy(100000000).toFixed(8);
-    return removeTrailingZeros(value) + ' ' + loc.units[BitcoinUnit.BTC];
+    return removeTrailingZeros(value) + ' ' + loc.units[BitcoinUnit.ECR];
   } else if (toUnit === BitcoinUnit.SATS) {
     return (withFormatting ? new Intl.NumberFormat().format(balance).toString() : String(balance)) + ' ' + loc.units[BitcoinUnit.SATS];
   } else {
@@ -343,13 +347,24 @@ export function formatBalanceWithoutSuffix(balance = 0, toUnit: string, withForm
   if (toUnit === undefined) {
     return balance;
   }
-  if (toUnit === BitcoinUnit.BTC) {
+  if (toUnit === BitcoinUnit.ECR) {
     const value = new BigNumber(balance).dividedBy(100000000).toFixed(8);
     return removeTrailingZeros(value);
   } else if (toUnit === BitcoinUnit.SATS) {
     return withFormatting ? new Intl.NumberFormat().format(balance).toString() : String(balance);
   } else {
     return satoshiToLocalCurrency(balance);
+  }
+}
+
+export function formatEcrValueByUnit(value: number, toUnit: string, withFormatting: boolean): string {
+  if (toUnit === BitcoinUnit.ECR) {
+    return value.toFixed(8).replace(/\.?0+$/, '');
+  } else if (toUnit === BitcoinUnit.SATS) {
+    const sats = Math.round(value * 100000000);
+    return withFormatting ? new Intl.NumberFormat().format(sats).toString() : String(sats);
+  } else {
+    return satoshiToLocalCurrency(Math.round(value * 100000000)).toString();
   }
 }
 
@@ -381,7 +396,7 @@ export function _leaveNumbersAndDots(newInputValue: string) {
 }
 
 /**
- * @see https://github.com/BlueWallet/BlueWallet/issues/3466
+ * @see https://github.com/ECRWallet/ECRWallet/issues/3466
  */
 export function formatStringAddTwoWhiteSpaces(text: string): string {
   return `${text}  `;

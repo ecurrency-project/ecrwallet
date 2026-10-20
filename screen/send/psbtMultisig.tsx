@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 import {
   FlatList,
   StyleSheet,
@@ -17,7 +17,7 @@ import {
 import { Icon } from '@rneui/themed';
 
 import { satoshiToBTC, satoshiToLocalCurrency } from '../../blue_modules/currency';
-import { BlueCard, BlueText } from '../../BlueComponents';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
 import presentAlert from '../../components/Alert';
 import Button from '../../components/Button';
 import SafeArea from '../../components/SafeArea';
@@ -300,7 +300,7 @@ const PsbtMultisig = () => {
         <View style={styles.textBtcUnit}>
           <BlueText selectable style={stylesHook.textBtcUnitValue}>
             {' '}
-            {BitcoinUnit.BTC}
+            {BitcoinUnit.ECR}
           </BlueText>
         </View>
       </View>
@@ -433,14 +433,15 @@ const styles = StyleSheet.create({
   },
   textAlignCenter: {
     textAlign: 'center',
+    ...Styles.fonts['P1 Regular'],
   },
   textDestinationFirstFour: {
-    fontSize: 14,
+    ...Styles.fonts['P1 Regular'],
   },
   textDestination: {
+    ...Styles.fonts['P1 Regular'],
     paddingTop: 10,
     paddingBottom: 40,
-    fontSize: 14,
     flexWrap: 'wrap',
   },
   provideSignatureButton: {
@@ -453,8 +454,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
   },
-  provideSignatureButtonText: { fontWeight: '600', fontSize: 15 },
-  vaultKeyText: { fontSize: 18, fontWeight: 'bold' },
+  provideSignatureButtonText: {
+    ...Styles.fonts['P2 Bold'],
+  },
+  vaultKeyText: {
+    ...Styles.fonts['P2 Bold'],
+  },
   vaultKeyTextWrapper: { justifyContent: 'center', alignItems: 'center', paddingLeft: 16 },
   vaultKeyCircle: {
     width: 42,
@@ -471,7 +476,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemUnsignedWrapper: { flexDirection: 'row', paddingTop: 16 },
-  vaultKeyTextSigned: { fontSize: 18, fontWeight: 'bold' },
+  vaultKeyTextSigned: {
+    ...Styles.fonts['P2 Bold'],
+  },
   vaultKeyTextSignedWrapper: { justifyContent: 'center', alignItems: 'center', paddingLeft: 16 },
   flexDirectionRow: { flexDirection: 'row', paddingVertical: 12 },
   textBtcUnit: { justifyContent: 'flex-end' },

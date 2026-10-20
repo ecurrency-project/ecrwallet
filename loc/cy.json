@@ -60,6 +60,7 @@
     "header": "Derbyn"
   },
   "send": {
+    "min_amount": "Y swm lleiaf yw {amount}",
     "broadcastButton": "Darlledu",
     "broadcastError": "Camgymeriad",
     "broadcastPending": "Disgwyl",
@@ -115,7 +116,7 @@
     "general": "Cyffredinol",
     "header": "Gosodiadau",
     "language": "Iaith",
-    "language_isRTL": "Mae angen ail ddechrau BlueWallet i'r newidiadau iaith gael effaith.",
+    "language_isRTL": "Mae angen ail ddechrau ECRWallet i'r newidiadau iaith gael effaith.",
     "lightning_saved": "Mae dy newidiadau wedi cael eu safio'n llwyddianus.",
     "lightning_settings": "Gosodiadau Mellten",
     "network": "Rhwydwaith",
@@ -128,6 +129,7 @@
     "total_balance": "Balans Llawn"
   },
   "transactions": {
+    "block_height": "Uchder y bloc",
     "cpfp_create": "Creu",
     "details_balance_hide": "Cuddio Balans",
     "details_balance_show": "Dangos Balans",
@@ -136,6 +138,7 @@
     "details_inputs": "Mewnbynau",
     "details_outputs": "Allbynau",
     "details_received": "Derbynwyd",
+    "details_sent": "Anfonwyd",
     "details_title": "Trafodyn",
     "details_to": "Allbwn",
     "pending": "Disgwyl",
@@ -143,7 +146,7 @@
     "transaction": "Trafodyn"
   },
   "wallets": {
-    "add_bitcoin_explain": "Waled Bitcoin syml a cryf",
+    "add_ecurrency_explain": "Waled Ecurrency syml a cryf",
     "add_create": "Creu",
     "total_balance": "Balans Llawn",
     "add_import_wallet": "Mewnforio waled",

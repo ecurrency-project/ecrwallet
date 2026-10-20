@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleProp, StyleSheet, Text, Pressable, PressablePro
 import { Icon } from '@rneui/themed';
 
 import { useTheme } from './themes';
+import { Styles } from '../BlueComponents';
 
 interface ButtonProps extends PressableProps {
   backgroundColor?: string;
@@ -23,8 +24,8 @@ interface ButtonProps extends PressableProps {
 export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>((props, ref) => {
   const { colors } = useTheme();
 
-  let backgroundColor = props.backgroundColor ?? colors.mainColor;
-  let fontColor = props.buttonTextColor ?? colors.buttonTextColor;
+  let backgroundColor = '#d53030';
+  let fontColor = '#ffffff';
   if (props.disabled) {
     backgroundColor = colors.buttonDisabledBackgroundColor;
     fontColor = colors.buttonDisabledTextColor;
@@ -72,8 +73,6 @@ export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps
 
 const styles = StyleSheet.create({
   button: {
-    borderWidth: 0.7,
-    minHeight: 45,
     height: 48,
     maxHeight: 48,
     borderRadius: 25,
@@ -88,9 +87,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
+    ...Styles.fonts['P2 Bold'],
     marginHorizontal: 8,
-    fontSize: 16,
-    fontWeight: '600',
   },
   pressableWrapper: {
     overflow: 'hidden',

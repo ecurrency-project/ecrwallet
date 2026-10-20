@@ -30,6 +30,7 @@
     "details_create": "Жасау"
   },
   "send": {
+    "min_amount": "Ең аз сома — {amount}",
     "broadcastError": "Қате",
     "broadcastPending": "Күтілуде",
     "confirm_header": "Растау",
@@ -57,6 +58,7 @@
     "save": "Сақтау"
   },
   "transactions": {
+    "block_height": "Блок биіктігі",
     "cpfp_create": "Жасау",
     "pending": "Күтілуде"
   },

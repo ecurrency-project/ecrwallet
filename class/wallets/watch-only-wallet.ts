@@ -1,9 +1,10 @@
 import BIP32Factory from 'bip32';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
 
 import ecc from '../../blue_modules/noble_ecc';
+import { network } from '../../models/ecurrencyNetwork';
 import { AbstractWallet } from './abstract-wallet';
-import { HDLegacyP2PKHWallet } from './hd-legacy-p2pkh-wallet';
+import { HDECurrencyWallet } from './hd-ecurrency-wallet';
 import { HDSegwitBech32Wallet } from './hd-segwit-bech32-wallet';
 import { HDSegwitP2SHWallet } from './hd-segwit-p2sh-wallet';
 import { LegacyWallet } from './legacy-wallet';
@@ -58,13 +59,16 @@ export class WatchOnlyWallet extends LegacyWallet {
 
   valid() {
     if (this.secret.startsWith('xpub') || this.secret.startsWith('ypub') || this.secret.startsWith('zpub')) return this.isXpubValid();
+    return this.isAddressValid(this.secret);
+  }
 
+  // Accept ECurrency (P2PK) addresses in addition to Bitcoin, so a single ECurrency
+  // address can be watched. Falls back to the Bitcoin check from LegacyWallet.
+  isAddressValid(address: string): boolean {
     try {
-      bitcoin.address.toOutputScript(this.getAddress());
-      return true;
-    } catch (_) {
-      return false;
-    }
+      if (bitcoin.qbitcoinAddress.validate(address, network)) return true;
+    } catch (_) {}
+    return super.isAddressValid(address);
   }
 
   /**
@@ -74,7 +78,7 @@ export class WatchOnlyWallet extends LegacyWallet {
    */
   init() {
     let hdWalletInstance: THDWalletForWatchOnly;
-    if (this.secret.startsWith('xpub')) hdWalletInstance = new HDLegacyP2PKHWallet();
+    if (this.secret.startsWith('xpub')) hdWalletInstance = new HDECurrencyWallet() as unknown as THDWalletForWatchOnly;
     else if (this.secret.startsWith('ypub')) hdWalletInstance = new HDSegwitP2SHWallet();
     else if (this.secret.startsWith('zpub')) hdWalletInstance = new HDSegwitBech32Wallet();
     else return this;

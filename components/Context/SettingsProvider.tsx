@@ -65,10 +65,10 @@ export const getTotalBalancePreferredUnit = async (): Promise<BitcoinUnit> => {
   try {
     await DefaultPreference.setName(GROUP_IO_BLUEWALLET);
     const unit = (await DefaultPreference.get(TotalWalletsBalancePreferredUnit)) as BitcoinUnit | null;
-    return unit ?? BitcoinUnit.BTC;
+    return unit ?? BitcoinUnit.ECR;
   } catch (e) {
     console.error('Error getting TotalBalancePreferredUnit:', e);
-    return BitcoinUnit.BTC;
+    return BitcoinUnit.ECR;
   }
 };
 
@@ -122,7 +122,7 @@ const defaultSettingsContext: SettingsContextType = {
   setIsQuickActionsEnabledStorage: async () => {},
   isTotalBalanceEnabled: true,
   setIsTotalBalanceEnabledStorage: async () => {},
-  totalBalancePreferredUnit: BitcoinUnit.BTC,
+  totalBalancePreferredUnit: BitcoinUnit.ECR,
   setTotalBalancePreferredUnitStorage: async () => {},
   selectedBlockExplorer: BLOCK_EXPLORERS.default,
   setBlockExplorerStorage: async () => false,
@@ -143,7 +143,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = React.m
   const [isClipboardGetContentEnabled, setIsClipboardGetContentEnabled] = useState<boolean>(true);
   const [isQuickActionsEnabled, setIsQuickActionsEnabled] = useState<boolean>(true);
   const [isTotalBalanceEnabled, setIsTotalBalanceEnabled] = useState<boolean>(true);
-  const [totalBalancePreferredUnit, setTotalBalancePreferredUnit] = useState<BitcoinUnit>(BitcoinUnit.BTC);
+  const [totalBalancePreferredUnit, setTotalBalancePreferredUnit] = useState<BitcoinUnit>(BitcoinUnit.ECR);
   const [selectedBlockExplorer, setSelectedBlockExplorer] = useState<BlockExplorer>(BLOCK_EXPLORERS.default);
   const [isElectrumDisabled, setIsElectrumDisabled] = useState<boolean>(true);
 

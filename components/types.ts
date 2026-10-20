@@ -1,4 +1,4 @@
-import { AccessibilityRole, ViewStyle, ColorValue } from 'react-native';
+import { AccessibilityRole, ViewStyle, ColorValue, GestureResponderEvent } from 'react-native';
 
 export interface Action {
   id: string | number;
@@ -28,7 +28,7 @@ export interface ToolTipMenuProps {
   isMenuPrimaryAction?: boolean;
   isButton?: boolean;
   renderPreview?: () => React.ReactNode;
-  onPress?: () => void;
+  onPress?: (event: GestureResponderEvent) => void;
   previewValue?: string;
   accessibilityRole?: AccessibilityRole;
   disabled?: boolean;
@@ -43,9 +43,9 @@ export interface ToolTipMenuProps {
 }
 
 export enum HandOffActivityType {
-  ReceiveOnchain = 'io.bluewallet.bluewallet.receiveonchain',
-  Xpub = 'io.bluewallet.bluewallet.xpub',
-  ViewInBlockExplorer = 'io.bluewallet.bluewallet.blockexplorer',
+  ReceiveOnchain = 'ecurrency.org.ecrwallet.receiveonchain',
+  Xpub = 'ecurrency.org.ecrwallet.xpub',
+  ViewInBlockExplorer = 'ecurrency.org.ecrwallet.blockexplorer',
 }
 
 export interface HandOffComponentProps {

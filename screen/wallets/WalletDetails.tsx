@@ -5,25 +5,16 @@ import {
   LayoutAnimation,
   StyleSheet,
   Switch,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { writeFileAndExport } from '../../blue_modules/fs';
 import triggerHapticFeedback, { HapticFeedbackTypes } from '../../blue_modules/hapticFeedback';
-import { BlueCard, BlueText } from '../../BlueComponents';
-import {
-  HDAezeedWallet,
-  HDSegwitBech32Wallet,
-  LegacyWallet,
-  MultisigHDWallet,
-  SegwitBech32Wallet,
-  SegwitP2SHWallet,
-  WatchOnlyWallet,
-} from '../../class';
+import { BlueCard, BlueText, Styles } from '../../BlueComponents';
+import { ECurrencyWallet, HDSegwitBech32Wallet, WatchOnlyWallet } from '../../class';
 import { AbstractHDElectrumWallet } from '../../class/wallets/abstract-hd-electrum-wallet';
-import { LightningCustodianWallet } from '../../class/wallets/lightning-custodian-wallet';
 import presentAlert from '../../components/Alert';
 import Button from '../../components/Button';
 import ListItem from '../../components/ListItem';
@@ -44,6 +35,7 @@ import { CommonToolTipActions } from '../../typings/CommonToolTipActions';
 import SafeAreaScrollView from '../../components/SafeAreaScrollView';
 import { BlueSpacing10, BlueSpacing20 } from '../../components/BlueSpacing';
 import { BlueLoading } from '../../components/BlueLoading';
+import ArrowLeftIcon from '../../img/icons/ArrowLeftIcon.tsx';
 
 type RouteProps = RouteProp<DetailViewStackParamList, 'WalletDetails'>;
 const WalletDetails: React.FC = () => {
@@ -51,6 +43,8 @@ const WalletDetails: React.FC = () => {
   const { isBiometricUseCapableAndEnabled } = useBiometrics();
   const { walletID } = useRoute<RouteProps>().params;
   const { direction } = useLocale();
+  const insets = useSafeAreaInsets();
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [backdoorPressed, setBackdoorPressed] = useState<number>(0);
   const walletRef = useRef<TWallet | undefined>(wallets.find(w => w.getID() === walletID));
@@ -67,7 +61,7 @@ const WalletDetails: React.FC = () => {
   const [hideTransactionsInWalletsList, setHideTransactionsInWalletsList] = useState<boolean>(
     wallet.getHideTransactionsInWalletsList ? !wallet.getHideTransactionsInWalletsList() : true,
   );
-  const { setOptions, navigate, navigateToWalletsList } = useExtendedNavigation();
+  const { setOptions, navigate, navigateToWalletsList, goBack } = useExtendedNavigation();
   const { colors } = useTheme();
   const [walletName, setWalletName] = useState<string>(wallet.getLabel());
 
@@ -163,7 +157,7 @@ const WalletDetails: React.FC = () => {
   }, [isBiometricUseCapableAndEnabled, navigateToOverviewAndDeleteWallet, presentWalletHasBalanceAlert, wallet]);
 
   const exportHistoryContent = useCallback(() => {
-    const headers = [loc.transactions.date, loc.transactions.txid, `${loc.send.create_amount} (${BitcoinUnit.BTC})`, loc.send.create_memo];
+    const headers = [loc.transactions.date, loc.transactions.txid, `${loc.send.create_amount} (${BitcoinUnit.ECR})`, loc.send.create_memo];
     if (wallet.chain === Chain.OFFCHAIN) {
       headers.push(loc.lnd.payment);
     }
@@ -172,7 +166,7 @@ const WalletDetails: React.FC = () => {
     const transactions = wallet.getTransactions();
 
     transactions.forEach((transaction: Transaction & LightningTransaction) => {
-      const value = formatBalanceWithoutSuffix(transaction.value || 0, BitcoinUnit.BTC, true);
+      const value = formatBalanceWithoutSuffix(transaction.value || 0, BitcoinUnit.ECR, true);
       let hash: string = transaction.hash || '';
       let memo = (transaction.hash && txMetadata[transaction.hash]?.memo?.trim()) || '';
       let status = '';
@@ -232,16 +226,26 @@ const WalletDetails: React.FC = () => {
     return actions;
   }, [walletTransactionsLength]);
 
-  const HeaderRight = useMemo(
-    () => <HeaderMenuButton disabled={isLoading} onPressMenuItem={toolTipOnPressMenuItem} actions={toolTipActions} />,
-    [toolTipOnPressMenuItem, toolTipActions, isLoading],
+  const Header = useMemo(
+    () => (
+      <View style={[styles.headerContainer, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity style={[styles.buttonCross, { backgroundColor: colors.lightButton }]} onPress={goBack}>
+          <View style={styles.iconContainer}>
+            <ArrowLeftIcon color={colors.foregroundColor} size={28} />
+          </View>
+        </TouchableOpacity>
+        <BlueText style={styles.title}>{loc.wallets.details_title}</BlueText>
+        <HeaderMenuButton disabled={isLoading} onPressMenuItem={toolTipOnPressMenuItem} actions={toolTipActions} />
+      </View>
+    ),
+    [colors, isLoading, toolTipOnPressMenuItem, toolTipActions, goBack, insets],
   );
 
   useEffect(() => {
     setOptions({
-      headerRight: () => HeaderRight,
+      header: () => Header,
     });
-  }, [HeaderRight, setOptions]);
+  }, [Header, setOptions]);
 
   useEffect(() => {
     setIsContactsVisible(wallet.allowBIP47 && wallet.allowBIP47() && isBIP47Enabled);
@@ -292,19 +296,7 @@ const WalletDetails: React.FC = () => {
       },
     });
   };
-  const navigateToMultisigCoordinationSetup = () => {
-    navigate('ExportMultisigCoordinationSetupRoot', {
-      screen: 'ExportMultisigCoordinationSetup',
-      params: {
-        walletID,
-      },
-    });
-  };
-  const navigateToViewEditCosigners = () => {
-    navigate('ViewEditMultisigCosigners', {
-      walletID,
-    });
-  };
+
   const navigateToXPub = () =>
     navigate('WalletXpubRoot', {
       screen: 'WalletXpub',
@@ -427,14 +419,11 @@ const WalletDetails: React.FC = () => {
           <>
             <BlueCard style={styles.address}>
               {(() => {
-                if (
-                  [LegacyWallet.type, SegwitBech32Wallet.type, SegwitP2SHWallet.type].includes(wallet.type) ||
-                  (wallet.type === WatchOnlyWallet.type && !wallet.isHd())
-                ) {
+                if ([ECurrencyWallet.type].includes(wallet.type) || (wallet.type === WatchOnlyWallet.type && !wallet.isHd())) {
                   return (
                     <>
-                      <Text style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.wallets.details_address.toLowerCase()}</Text>
-                      <Text style={[styles.textValue, stylesHook.textValue]} selectable>
+                      <BlueText style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.wallets.details_address}</BlueText>
+                      <BlueText style={stylesHook.textValue} selectable>
                         {(() => {
                           // gracefully handling faulty wallets, so at least user has an option to delete the wallet
                           try {
@@ -443,12 +432,12 @@ const WalletDetails: React.FC = () => {
                             return error.message;
                           }
                         })()}
-                      </Text>
+                      </BlueText>
                     </>
                   );
                 }
               })()}
-              <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.add_wallet_name.toLowerCase()}</Text>
+              <BlueText style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.add_wallet_name}</BlueText>
               <View style={[styles.input, stylesHook.input]}>
                 <TextInput
                   value={walletName}
@@ -469,46 +458,14 @@ const WalletDetails: React.FC = () => {
                 />
               </View>
               <BlueSpacing20 />
-              <Text style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.wallets.details_type.toLowerCase()}</Text>
-              <Text style={[styles.textValue, stylesHook.textValue]} selectable>
+              <BlueText style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.wallets.details_type}</BlueText>
+              <BlueText style={stylesHook.textValue} selectable>
                 {wallet.typeReadable}
-              </Text>
-
-              {wallet.type === MultisigHDWallet.type && (
-                <>
-                  <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_multisig_type}</Text>
-                  <BlueText>
-                    {`${wallet.getM()} / ${wallet.getN()} (${
-                      wallet.isNativeSegwit() ? 'native segwit' : wallet.isWrappedSegwit() ? 'wrapped segwit' : 'legacy'
-                    })`}
-                  </BlueText>
-                </>
-              )}
-              {wallet.type === MultisigHDWallet.type && (
-                <>
-                  <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.multisig.how_many_signatures_can_bluewallet_make}</Text>
-                  <BlueText>{wallet.howManySignaturesCanWeMake()}</BlueText>
-                </>
-              )}
-
-              {wallet.type === LightningCustodianWallet.type && (
-                <>
-                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.wallets.details_connected_to.toLowerCase()}</Text>
-                  <BlueText>{wallet.getBaseURI()}</BlueText>
-                </>
-              )}
-
-              {wallet.type === HDAezeedWallet.type && (
-                <>
-                  <Text style={[styles.textLabel1, stylesHook.textLabel1]}>{loc.wallets.identity_pubkey.toLowerCase()}</Text>
-                  <BlueText>{wallet.getIdentityPubkey()}</BlueText>
-                </>
-              )}
-              <BlueSpacing20 />
+              </BlueText>
               <>
-                <Text onPress={exportInternals} style={[styles.textLabel2, stylesHook.textLabel2]}>
-                  {loc.transactions.list_title.toLowerCase()}
-                </Text>
+                <BlueText onPress={exportInternals} style={[styles.textLabel2, stylesHook.textLabel2]}>
+                  {loc.transactions.list_title}
+                </BlueText>
                 <View style={styles.hardware}>
                   <BlueText>{loc.wallets.details_display}</BlueText>
                   <Switch
@@ -530,15 +487,15 @@ const WalletDetails: React.FC = () => {
                 </View>
               </>
               <>
-                <Text onPress={purgeTransactions} style={[styles.textLabel2, stylesHook.textLabel2]} testID="PurgeBackdoorButton">
-                  {loc.transactions.transactions_count.toLowerCase()}
-                </Text>
+                <BlueText onPress={purgeTransactions} style={[styles.textLabel2, stylesHook.textLabel2]} testID="PurgeBackdoorButton">
+                  {loc.transactions.transactions_count}
+                </BlueText>
                 <BlueText>{wallet.getTransactions().length}</BlueText>
               </>
 
               {wallet.allowBIP47 && wallet.allowBIP47() ? (
                 <>
-                  <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.bip47.payment_code}</Text>
+                  <BlueText style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.bip47.payment_code}</BlueText>
                   <View style={styles.hardware}>
                     <BlueText>{loc.bip47.purpose}</BlueText>
                     <Switch
@@ -566,7 +523,7 @@ const WalletDetails: React.FC = () => {
                 {wallet.type === WatchOnlyWallet.type && wallet.isHd && wallet.isHd() && (
                   <>
                     <BlueSpacing10 />
-                    <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_advanced.toLowerCase()}</Text>
+                    <BlueText style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_advanced.toLowerCase()}</BlueText>
                     <View style={styles.hardware}>
                       <BlueText>{loc.wallets.details_use_with_hardware_wallet}</BlueText>
                       <Switch
@@ -591,7 +548,9 @@ const WalletDetails: React.FC = () => {
                 <View style={styles.row}>
                   {wallet.allowMasterFingerprint && wallet.allowMasterFingerprint() && (
                     <View style={styles.marginRight16}>
-                      <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_master_fingerprint.toLowerCase()}</Text>
+                      <BlueText style={[styles.textLabel2, stylesHook.textLabel2]}>
+                        {loc.wallets.details_master_fingerprint.toLowerCase()}
+                      </BlueText>
                       {isMasterFingerPrintVisible ? (
                         <BlueText selectable>{masterFingerprint ?? <ActivityIndicator />}</BlueText>
                       ) : (
@@ -604,7 +563,7 @@ const WalletDetails: React.FC = () => {
 
                   {derivationPath && (
                     <View>
-                      <Text style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_derivation_path}</Text>
+                      <BlueText style={[styles.textLabel2, stylesHook.textLabel2]}>{loc.wallets.details_derivation_path}</BlueText>
                       <BlueText selectable testID="DerivationPath">
                         {derivationPath}
                       </BlueText>
@@ -621,27 +580,6 @@ const WalletDetails: React.FC = () => {
               <View>
                 <BlueSpacing20 />
                 <Button onPress={navigateToWalletExport} testID="WalletExport" title={loc.wallets.details_export_backup} />
-                {wallet.type === MultisigHDWallet.type && (
-                  <>
-                    <BlueSpacing20 />
-                    <SecondButton
-                      onPress={navigateToMultisigCoordinationSetup}
-                      testID="MultisigCoordinationSetup"
-                      title={loc.multisig.export_coordination_setup.replace(/^\w/, (c: string) => c.toUpperCase())}
-                    />
-                  </>
-                )}
-
-                {wallet.type === MultisigHDWallet.type && (
-                  <>
-                    <BlueSpacing20 />
-                    <SecondButton
-                      onPress={navigateToViewEditCosigners}
-                      testID="ViewEditCosigners"
-                      title={loc.multisig.view_edit_cosigners}
-                    />
-                  </>
-                )}
 
                 {wallet.allowXpub && wallet.allowXpub() && (
                   <>
@@ -672,18 +610,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textLabel1: {
-    fontWeight: '500',
-    fontSize: 14,
-    marginVertical: 12,
+    marginTop: 16,
+    marginBottom: 6,
   },
   textLabel2: {
-    fontWeight: '500',
-    fontSize: 14,
-    marginVertical: 16,
-  },
-  textValue: {
-    fontWeight: '500',
-    fontSize: 14,
+    marginTop: 16,
+    marginBottom: 6,
   },
   input: {
     flexDirection: 'row',
@@ -692,11 +624,12 @@ const styles = StyleSheet.create({
     minHeight: 44,
     height: 44,
     alignItems: 'center',
-    borderRadius: 4,
+    borderRadius: 24,
   },
   inputText: {
+    ...Styles.fonts['P2 Regular'],
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: 24,
     minHeight: 33,
     color: '#81868e',
   },
@@ -710,6 +643,27 @@ const styles = StyleSheet.create({
   },
   marginRight16: {
     marginRight: 16,
+  },
+
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  buttonCross: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  iconContainer: {
+    alignSelf: 'center',
+  },
+  title: {
+    ...Styles.fonts['P3 Bold'],
   },
 });
 

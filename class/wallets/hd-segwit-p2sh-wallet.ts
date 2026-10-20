@@ -1,6 +1,6 @@
 import BIP32Factory, { BIP32Interface } from 'bip32';
-import * as bitcoin from 'bitcoinjs-lib';
-import { Psbt } from 'bitcoinjs-lib';
+import * as bitcoin from '@qbtc/bitcoinjs-lib';
+import { Psbt } from '@qbtc/bitcoinjs-lib';
 import b58 from 'bs58check';
 import { CoinSelectReturnInput } from 'coinselect';
 

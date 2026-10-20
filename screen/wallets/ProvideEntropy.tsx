@@ -1,29 +1,39 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useEffect, useMemo, useReducer, useState } from 'react';
 import { RouteProp, StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Icon } from '@rneui/themed';
 import BN from 'bignumber.js';
 import {
   Alert,
-  Dimensions,
   Image,
-  PixelRatio,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { randomBytes } from '../../class/rng';
-import { FButton, FContainer } from '../../components/FloatButtons';
+import { FContainer } from '../../components/FloatButtons';
 import SafeArea from '../../components/SafeArea';
 import { Tabs } from '../../components/Tabs';
 import { BlueCurrentTheme, useTheme } from '../../components/themes';
 import loc from '../../loc';
 import { AddWalletStackParamList } from '../../navigation/AddWalletStack';
-import { BlueSpacing20 } from '../../components/BlueSpacing';
+import ArrowLeftIcon from '../../img/icons/ArrowLeftIcon.tsx';
+import { BlueText, Styles } from '../../BlueComponents';
+import RadioButtonIcon from '../../img/icons/RadioButtonIcon.tsx';
+import DiceIcon from '../../img/icons/DiceIcon.tsx';
+import DiceDIcon from '../../img/icons/DiceDIcon.tsx';
+import SaveIcon from '../../img/icons/SaveIcon.tsx';
+import UndoIcon from '../../img/icons/UndoIcon.tsx';
+import DiceOneIcon from '../../img/icons/DiceOneIcon.tsx';
+import DiceTwoIcon from '../../img/icons/DiceTwoIcop.tsx';
+import DiceThreeIcon from '../../img/icons/DiceThreeIcon.tsx';
+import DiceFourIcon from '../../img/icons/DiceFourIcon.tsx';
+import DiceFiveIcon from '../../img/icons/DiceFiveIcon.tsx';
+import DiceSixIcon from '../../img/icons/DiceSixIcon.tsx';
+import LogoIcon from '../../img/icons/LogoIcon.tsx';
 
 type RouteProps = RouteProp<AddWalletStackParamList, 'ProvideEntropy'>;
 type NavigationProp = NativeStackNavigationProp<AddWalletStackParamList, 'ProvideEntropy'>;
@@ -154,107 +164,91 @@ export const convertToBuffer = ({ entropy, bits }: { entropy: BN; bits: number }
 const Coin = ({ push }: { push: TPush }) => (
   <View style={styles.coinRoot}>
     <TouchableOpacity accessibilityRole="button" onPress={() => push(getEntropy(0, 2))} style={styles.coinBody}>
-      <Image style={styles.coinImage} source={require('../../img/coin1.png')} />
+      <LogoIcon size={75} />
     </TouchableOpacity>
     <TouchableOpacity accessibilityRole="button" onPress={() => push(getEntropy(1, 2))} style={styles.coinBody}>
-      <Image style={styles.coinImage} source={require('../../img/coin2.png')} />
+      <Image style={styles.coinImage} source={require('../../img/USDT_Logo.png')} />
     </TouchableOpacity>
   </View>
 );
 
-const diceIcon = (i: number): string => {
-  switch (i) {
-    case 1:
-      return 'dice-one';
-    case 2:
-      return 'dice-two';
-    case 3:
-      return 'dice-three';
-    case 4:
-      return 'dice-four';
-    case 5:
-      return 'dice-five';
-    default:
-      return 'dice-six';
-  }
-};
-
 const Dice = ({ push, sides }: { push: TPush; sides: number }) => {
   const { width } = useWindowDimensions();
   const { colors } = useTheme();
-  const diceWidth = width / 4;
+  const diceWidth = width / 5;
   const stylesHook = StyleSheet.create({
     dice: {
-      borderColor: colors.buttonBackgroundColor,
+      borderColor: colors.feeText,
+      backgroundColor: colors.elevated,
+      width: diceWidth,
+      height: diceWidth,
     },
     diceText: {
       color: colors.foregroundColor,
     },
-    diceContainer: {
-      backgroundColor: colors.elevated,
-    },
   });
 
   return (
-    <ScrollView contentContainerStyle={[styles.diceContainer, stylesHook.diceContainer]}>
+    <ScrollView contentContainerStyle={styles.diceContainer}>
       {[...Array(sides)].map((_, i) => (
-        <TouchableOpacity accessibilityRole="button" key={i} onPress={() => push(getEntropy(i, sides))}>
-          <View style={[styles.diceRoot, { width: diceWidth }]}>
-            {sides === 6 ? (
-              <Icon style={styles.diceIcon} name={diceIcon(i + 1)} size={70} color="grey" type="font-awesome-5" />
-            ) : (
-              <View style={[styles.dice, stylesHook.dice]}>
-                <Text style={stylesHook.diceText}>{i + 1}</Text>
-              </View>
-            )}
-          </View>
+        <TouchableOpacity
+          style={[styles.diceRoot, { width: diceWidth }]}
+          accessibilityRole="button"
+          key={i}
+          onPress={() => push(getEntropy(i, sides))}
+        >
+          {sides === 6 ? (
+            i === 0 ? (
+              <DiceOneIcon size={diceWidth} color="grey" />
+            ) : i === 1 ? (
+              <DiceTwoIcon size={diceWidth} color="grey" />
+            ) : i === 2 ? (
+              <DiceThreeIcon size={diceWidth} color="grey" />
+            ) : i === 3 ? (
+              <DiceFourIcon size={diceWidth} color="grey" />
+            ) : i === 4 ? (
+              <DiceFiveIcon size={diceWidth} color="grey" />
+            ) : i === 5 ? (
+              <DiceSixIcon size={diceWidth} color="grey" />
+            ) : null
+          ) : (
+            <View style={[styles.dice, stylesHook.dice]}>
+              <BlueText style={[styles.diceText, stylesHook.diceText]}>{i + 1}</BlueText>
+            </View>
+          )}
         </TouchableOpacity>
       ))}
     </ScrollView>
   );
 };
 
-const buttonFontSize =
-  PixelRatio.roundToNearestPixel(Dimensions.get('window').width / 26) > 22
-    ? 22
-    : PixelRatio.roundToNearestPixel(Dimensions.get('window').width / 26);
-
 const Buttons = ({ pop, save, colors }: { pop: TPop; save: () => void; colors: any }) => (
   <FContainer>
-    <FButton
-      onPress={pop}
-      text={loc.entropy.undo}
-      icon={
-        <View style={styles.buttonsIcon}>
-          <Icon name="undo" size={buttonFontSize} type="font-awesome" color={colors.buttonAlternativeTextColor} />
-        </View>
-      }
-    />
-    <FButton
-      onPress={save}
-      text={loc.entropy.save}
-      icon={
-        <View style={styles.buttonsIcon}>
-          <Icon name="arrow-down" size={buttonFontSize} type="font-awesome" color={colors.buttonAlternativeTextColor} />
-        </View>
-      }
-    />
+    <TouchableOpacity style={[styles.scanButton, { backgroundColor: colors.buttonDisabledBackgroundColor }]} onPress={pop}>
+      <UndoIcon color={colors.foregroundColor} />
+      <BlueText>{loc.entropy.undo}</BlueText>
+    </TouchableOpacity>
+
+    <TouchableOpacity onPress={save} style={[styles.scanButton, { backgroundColor: colors.buttonDisabledBackgroundColor }]}>
+      <SaveIcon color={colors.foregroundColor} size={24} />
+      <BlueText>{loc.entropy.save}</BlueText>
+    </TouchableOpacity>
   </FContainer>
 );
 
 const TollTab = ({ active }: { active: boolean }) => {
   const { colors } = useTheme();
-  return <Icon name="toll" type="material" color={active ? colors.buttonAlternativeTextColor : colors.buttonBackgroundColor} />;
+  return <RadioButtonIcon color={active ? '#D53131' : colors.feeText} />;
 };
 
 const D6Tab = ({ active }: { active: boolean }) => {
   const { colors } = useTheme();
-  return <Icon name="dice" type="font-awesome-5" color={active ? colors.buttonAlternativeTextColor : colors.buttonBackgroundColor} />;
+  return <DiceIcon color={active ? '#D53131' : colors.feeText} />;
 };
 
 const D20Tab = ({ active }: { active: boolean }) => {
   const { colors } = useTheme();
-  return <Icon name="dice-d20" type="font-awesome-5" color={active ? colors.buttonAlternativeTextColor : colors.buttonBackgroundColor} />;
+  return <DiceDIcon color={active ? '#D53131' : colors.feeText} />;
 };
 
 const ProvideEntropy = () => {
@@ -264,6 +258,8 @@ const ProvideEntropy = () => {
   const [tab, setTab] = useState(1);
   const [show, setShow] = useState(false);
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+
   const stylesHook = StyleSheet.create({
     entropy: {
       backgroundColor: colors.inputBackgroundColor,
@@ -271,11 +267,43 @@ const ProvideEntropy = () => {
     entropyText: {
       color: colors.foregroundColor,
     },
+    button: {
+      backgroundColor: colors.lightButton,
+    },
+    root: {
+      backgroundColor: colors.elevated,
+      paddingTop: Platform.select({ ios: 16, android: insets.top + 8 }),
+    },
   });
+
+  const Header = useMemo(() => {
+    return (
+      <View style={[styles.headerContainer, stylesHook.root]}>
+        <TouchableOpacity
+          testID="NavigationCloseButton"
+          accessibilityRole="button"
+          style={[styles.buttonCross, stylesHook.button]}
+          onPress={navigation.goBack}
+        >
+          <View style={styles.iconContainer}>
+            <ArrowLeftIcon color={colors.foregroundColor} size={24} />
+          </View>
+        </TouchableOpacity>
+        <BlueText style={styles.title}>{loc.entropy.title}</BlueText>
+        <View style={styles.emptyBlock} />
+      </View>
+    );
+  }, [colors.foregroundColor, navigation.goBack, stylesHook.button, stylesHook.root]);
 
   useEffect(() => {
     dispatch({ type: EActionType.limit, limit: words === 24 ? 256 : 128 });
   }, [dispatch, words]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      header: () => Header,
+    });
+  }, [navigation, Header]);
 
   const handlePush: TPush = v => {
     if (v === null) {
@@ -344,12 +372,11 @@ const ProvideEntropy = () => {
 
   return (
     <SafeArea>
-      <BlueSpacing20 />
       <TouchableOpacity accessibilityRole="button" onPress={() => setShow(!show)}>
         <View style={[styles.entropy, stylesHook.entropy]}>
-          <Text style={[styles.entropyText, stylesHook.entropyText]}>
+          <BlueText style={stylesHook.entropyText}>
             {show ? hex : loc.formatString(loc.entropy.amountOfEntropy, { bits, limit: entropy.limit })}
-          </Text>
+          </BlueText>
         </View>
       </TouchableOpacity>
 
@@ -375,10 +402,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  entropyText: {
-    fontSize: 15,
-    fontFamily: 'Courier',
   },
   coinRoot: {
     flex: 1,
@@ -406,37 +429,65 @@ const styles = StyleSheet.create({
     borderRadius: 75,
   },
   diceContainer: {
-    alignItems: 'flex-start',
+    gap: 10,
+    alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     paddingBottom: 100,
+    paddingTop: 20,
   },
   diceRoot: {
-    aspectRatio: 1,
-    maxWidth: 100,
-    maxHeight: 100,
+    minWidth: 80,
+    minHeight: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   dice: {
-    margin: 3,
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     aspectRatio: 1,
-    borderColor: BlueCurrentTheme.colors.buttonBackgroundColor,
   },
-  diceIcon: {
-    margin: 3,
+  diceText: {
+    ...Styles.fonts['P3 Bold'],
+  },
+
+  // Header styles
+  emptyBlock: {
+    width: 38,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  buttonCross: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
     justifyContent: 'center',
-    alignItems: 'center',
-    aspectRatio: 1,
-    color: 'grey',
+    alignContent: 'center',
   },
-  buttonsIcon: {
-    backgroundColor: 'transparent',
-    transform: [{ rotate: '-45deg' }],
+  iconContainer: {
+    alignSelf: 'center',
+  },
+  title: {
+    ...Styles.fonts['P3 Bold'],
+  },
+
+  scanButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 40,
+    width: '47%',
+    gap: 10,
+    height: 52,
+    marginHorizontal: 5,
   },
 });
 
